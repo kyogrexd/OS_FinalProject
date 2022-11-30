@@ -4,12 +4,12 @@ plugins {
 }
 
 android {
-    compileSdk 32
+    compileSdk 31
 
     defaultConfig {
         applicationId "com.example.os_finalproject"
         minSdk 28
-        targetSdk 32
+        targetSdk 31
         versionCode 1
         versionName "1.0"
 
@@ -48,5 +48,5 @@ dependencies {
         exclude group: 'org.json', module: 'json'
     }
     // webRTC (https://mvnrepository.com/artifact/org.webrtc/google-webrtc/1.0.32006)
-//    implementation 'org.webrtc:google-webrtc:1.0.+'
+    implementation 'org.webrtc:google-webrtc:1.0.32006'
 }
