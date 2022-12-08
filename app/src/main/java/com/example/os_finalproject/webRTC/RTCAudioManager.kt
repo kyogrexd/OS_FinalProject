@@ -13,8 +13,6 @@ import android.preference.PreferenceManager
 import android.util.Log
 import androidx.annotation.Nullable
 import com.example.os_finalproject.R
-import lab.italkutalk.R
-import lab.italkutalk.tool.Method
 import org.webrtc.ThreadUtils
 import java.util.*
 import kotlin.collections.HashSet

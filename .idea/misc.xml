@@ -3,9 +3,13 @@
   <component name="DesignSurface">
     <option name="filePathToZoomLevelMap">
       <map>
-        <entry key="..\:/GitHub/OS_FinalProject/app/src/main/res/layout/activity_main.xml" value="0.175" />
-        <entry key="..\:/GitHub/OS_FinalProject/app/src/main/res/layout/fragment_homepage.xml" value="0.35260416666666666" />
-        <entry key="..\:/GitHub/OS_FinalProject/app/src/main/res/layout/item_list.xml" value="0.35260416666666666" />
+        <entry key="..\:/GitHub/OS_FinalProject/app/src/main/res/drawable-hdpi/btn_gray_light_50.xml" value="0.253" />
+        <entry key="..\:/GitHub/OS_FinalProject/app/src/main/res/drawable-hdpi/cameraswitch.xml" value="0.253" />
+        <entry key="..\:/GitHub/OS_FinalProject/app/src/main/res/drawable-hdpi/rp_rectangle_gray_10.xml" value="0.265" />
+        <entry key="..\:/GitHub/OS_FinalProject/app/src/main/res/layout/activity_rtc.xml" value="0.2" />
+        <entry key="..\:/GitHub/OS_FinalProject/app/src/main/res/layout/fragment_chatroom_list.xml" value="0.2598958333333333" />
+        <entry key="..\:/GitHub/OS_FinalProject/app/src/main/res/layout/item_list.xml" value="0.2598958333333333" />
+        <entry key="..\:/GitHub/OS_FinalProject/app/src/main/res/mipmap-anydpi-v26/ic_launcher.xml" value="0.265" />
       </map>
     </option>
   </component>

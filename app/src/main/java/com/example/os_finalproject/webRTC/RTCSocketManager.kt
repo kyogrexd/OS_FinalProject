@@ -1,9 +1,9 @@
 package lab.italkutalk.tool.webRTC
 
+import android.util.Log
+import com.example.os_finalproject.Data.*
 import io.socket.client.IO
 import io.socket.client.Socket
-import lab.italkutalk.data.webRTC.*
-import lab.italkutalk.tool.Method
 import org.json.JSONObject
 import java.net.URISyntaxException
 
@@ -24,7 +24,7 @@ class RTCSocketManager {
             mSocket = IO.socket(itutURL)
             mSocket?.connect()
         } catch (e: URISyntaxException) {
-            Method.logE(Tag, "error $e")
+            Log.e(Tag, "error $e")
         }
     }
 
@@ -48,7 +48,7 @@ class RTCSocketManager {
      * emit
      */
     fun startCall(data: StartCall) {
-        Method.logE(Tag, "[SocketEvent][emit] startCall")
+        Log.e(Tag, "[SocketEvent][emit] startCall")
         val jsonObject = JSONObject()
         jsonObject.put("roomID", data.roomID)
         jsonObject.put("callerID", data.callerID)
@@ -62,7 +62,7 @@ class RTCSocketManager {
     }
 
     fun joinRoom(data: Join) {
-        Method.logE(Tag, "[SocketEvent][emit] join")
+        Log.e(Tag, "[SocketEvent][emit] join")
         val jsonObject = JSONObject()
         jsonObject.put("roomID", data.roomID)
         jsonObject.put("calleeID", data.calleeID)
@@ -74,7 +74,7 @@ class RTCSocketManager {
     }
 
     fun sendSDPOffer(data: Offer) {
-        Method.logE(Tag, "[SocketEvent][emit] offer")
+        Log.e(Tag, "[SocketEvent][emit] offer")
         val jsonObject = JSONObject()
         jsonObject.put("sdp", data.sdp)
         jsonObject.put("type", data.type)
@@ -87,7 +87,7 @@ class RTCSocketManager {
     }
 
     fun sendSDPAnswer(data: Answer) {
-        Method.logE(Tag, "[SocketEvent][emit] answer")
+        Log.e(Tag, "[SocketEvent][emit] answer")
         val jsonObject = JSONObject()
         jsonObject.put("sdp", data.sdp)
         jsonObject.put("type", data.type)
@@ -100,14 +100,14 @@ class RTCSocketManager {
     }
 
     fun receivedReject(data: ReceivedReject) {
-        Method.logE(Tag, "[SocketEvent][emit] receivedReject")
+        Log.e(Tag, "[SocketEvent][emit] receivedReject")
         val jsonObject = JSONObject()
         jsonObject.put("callerID", data.callerID)
         emit("receivedReject", jsonObject)
     }
 
     fun sendICECandidates(data: Ice_candidates) {
-        Method.logE(Tag,"[SocketEvent][emit] ice_candidates")
+        Log.e(Tag,"[SocketEvent][emit] ice_candidates")
         val jsonObject = JSONObject()
         jsonObject.put("roomID", data.roomID)
         jsonObject.put("sdpMid", data.sdpMid)
@@ -119,7 +119,7 @@ class RTCSocketManager {
     }
 
     fun finishCall(data: Finish) {
-        Method.logE(Tag, "[SocketEvent][emit] finish")
+        Log.e(Tag, "[SocketEvent][emit] finish")
         val jsonObject = JSONObject()
         jsonObject.put("roomID", data.roomID)
         jsonObject.put("callerID", data.callerID)
@@ -131,7 +131,7 @@ class RTCSocketManager {
     }
 
     fun noReplyCall(roomID: String, userID: String) {
-        Method.logE(Tag, "[SocketEvent][emit] noReply")
+        Log.e(Tag, "[SocketEvent][emit] noReply")
         val jsonObject = JSONObject()
         jsonObject.put("roomID", roomID)
         jsonObject.put("callerID", userID)
@@ -139,7 +139,7 @@ class RTCSocketManager {
     }
 
     fun cancelCall(data: Cancel) {
-        Method.logE(Tag, "[SocketEvent][emit] cancel")
+        Log.e(Tag, "[SocketEvent][emit] cancel")
         val jsonObject = JSONObject()
         jsonObject.put("roomID", data.roomID)
         jsonObject.put("callerID", data.callerID)
