@@ -42,7 +42,7 @@ class RTCActivity : AppCompatActivity() {
 
     private var isMute = false
 
-    private var isVideo = false
+    private var isVideo = true
 
     private var isSpeaker = true
 
@@ -81,6 +81,12 @@ class RTCActivity : AppCompatActivity() {
             isVideo = it.isVideo
             isSpeaker = it.isSpeakMode
             isBackCamera = it.isBackCamera
+
+            binding.run {
+                imgMic.setImageDrawable(getDrawable(if (isMute) R.drawable.mic_off else R.drawable.mic_on))
+                imgVideo.setImageDrawable(getDrawable(if (isVideo) R.drawable.video_on else R.drawable.video_off))
+                imgAudio.setImageDrawable(getDrawable(if (isSpeaker) R.drawable.sound_on else R.drawable.sound_off))
+            }
         }
     }
 
@@ -138,12 +144,20 @@ class RTCActivity : AppCompatActivity() {
                 Log.e(Tag, "onTrack: $transceiver" )
             }
         })
+        signallingClient =  SignalingClient(roomID, createSignallingClientListener())
+        handleVideoAudioStream()
+    }
+
+    private fun handleVideoAudioStream() {
+        rtcClient.setAudioStream(uuid)
+
+        binding.remoteView.release()
+        binding.localView.release()
 
         rtcClient.initSurfaceView(binding.remoteView, "remote")
         rtcClient.initSurfaceView(binding.localView, "local")
         rtcClient.setVideo(binding.localView ,uuid, false)
-        rtcClient.setAudioStream(uuid)
-        signallingClient =  SignalingClient(roomID, createSignallingClientListener())
+
         if (!isJoin)
             rtcClient.call(sdpObserver, roomID)
     }
@@ -156,6 +170,7 @@ class RTCActivity : AppCompatActivity() {
 
         override fun onOfferReceived(description: SessionDescription) {
             Log.e(Tag, "[Signalling] onOfferReceived")
+            binding.remoteView.visibility = View.VISIBLE
             rtcClient.onRemoteSessionReceived(description)
             Constants.isIntiatedNow = false
             rtcClient.answer(sdpObserver, roomID)
@@ -163,6 +178,7 @@ class RTCActivity : AppCompatActivity() {
 
         override fun onAnswerReceived(description: SessionDescription) {
             Log.e(Tag, "[Signalling] onAnswerReceived")
+            binding.remoteView.visibility = View.VISIBLE
             rtcClient.onRemoteSessionReceived(description)
             Constants.isIntiatedNow = false
         }
@@ -173,18 +189,18 @@ class RTCActivity : AppCompatActivity() {
         }
 
         override fun onCallEnded() {
-            if (!Constants.isCallEnded) {
-                Constants.isCallEnded = true
-                rtcClient.endCall(roomID)
-                finish()
-                startActivity(Intent(this@RTCActivity, MainActivity::class.java))
-            }
+            rtcClient.endCall(roomID)
+            finish()
+            startActivity(Intent(this@RTCActivity, MainActivity::class.java))
         }
     }
 
     private fun initDisplay() {
         binding.run {
             Glide.with(this@RTCActivity).asGif().load(R.raw.loading).override(imgLoading.width, imgLoading.height).into(imgLoading)
+            imgMic.setImageDrawable(getDrawable(if (isMute) R.drawable.mic_off else R.drawable.mic_on))
+            imgVideo.setImageDrawable(getDrawable(if (isVideo) R.drawable.video_on else R.drawable.video_off))
+            imgAudio.setImageDrawable(getDrawable(if (isSpeaker) R.drawable.sound_on else R.drawable.sound_off))
         }
     }
 
@@ -193,6 +209,22 @@ class RTCActivity : AppCompatActivity() {
             imgMic.setOnClickListener {
                 rtcClient.enableAudio(!isMute)
                 viewModel.updateController(Controller(!isMute, isVideo, isSpeaker, isBackCamera))
+            }
+
+            imgVideo.setOnClickListener {
+                rtcClient.enableVideo(!isVideo)
+                viewModel.updateController(Controller(isMute, !isVideo, isSpeaker, isBackCamera))
+            }
+
+            imgAudio.setOnClickListener {
+                audioManager.setDefaultAudioDevice(
+                    if (!isSpeaker) RTCAudioManager.AudioDevice.SPEAKER_PHONE
+                    else RTCAudioManager.AudioDevice.EARPIECE)
+                viewModel.updateController(Controller(isMute, isVideo, !isSpeaker, isBackCamera))
+            }
+
+            imgCamera.setOnClickListener {
+                rtcClient.switchCamera()
             }
 
             imgEndCall.setOnClickListener {

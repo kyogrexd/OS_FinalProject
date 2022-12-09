@@ -70,7 +70,6 @@ class SignalingClient(
             db.collection("calls")
                 .document(roomID)
                 .addSnapshotListener { snapshot, e ->
-
                     if (e != null) {
                         Log.w(TAG, "listen:error", e)
                         return@addSnapshotListener
@@ -78,26 +77,26 @@ class SignalingClient(
 
                     if (snapshot != null && snapshot.exists()) {
                         val data = snapshot.data
-                        if (data?.containsKey("type")!! &&
-                            data.getValue("type").toString() == "OFFER"
-                        ) {
+                        if (data?.containsKey("type_offer")!! &&
+                            data.getValue("type_offer").toString() == "OFFER"
+                        ) { //接收者事件
                             listener.onOfferReceived(
                                 SessionDescription(
-                                    SessionDescription.Type.OFFER, data["sdp"].toString()
+                                    SessionDescription.Type.OFFER, data["sdp_offer"].toString()
                                 )
                             )
                             SDPtype = "Offer"
-                        } else if (data.containsKey("type") &&
-                            data.getValue("type").toString() == "ANSWER"
-                        ) {
+                        } else if (data.containsKey("type_answer") &&
+                            data.getValue("type_answer").toString() == "ANSWER"
+                        ) { //撥打者事件
                             listener.onAnswerReceived(
                                 SessionDescription(
-                                    SessionDescription.Type.ANSWER, data["sdp"].toString()
+                                    SessionDescription.Type.ANSWER, data["sdp_answer"].toString()
                                 )
                             )
                             SDPtype = "Answer"
-                        } else if (!Constants.isIntiatedNow && data.containsKey("type") &&
-                            data.getValue("type").toString() == "END_CALL"
+                        } else if (!Constants.isIntiatedNow && data.containsKey("state") &&
+                            data.getValue("state").toString() == "END_CALL"
                         ) {
                             listener.onCallEnded()
                             SDPtype = "End Call"

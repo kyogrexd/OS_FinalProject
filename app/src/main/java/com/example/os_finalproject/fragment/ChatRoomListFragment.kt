@@ -70,14 +70,30 @@ class ChatRoomListFragment: Fragment() {
         adapter.setListener(object : ListAdapter.ClickListener {
             override fun onEnterChatRoom(item: String) {
                 val uuid = UUID.randomUUID().toString()
-                if (!isJoin) {
-                    db.collection("calls")
-                        .document(item)
-                        .get()
-                        .addOnSuccessListener {
-                            if (it["type"]=="OFFER" || it["type"]=="ANSWER" || it["type"]=="END_CALL") {
+                //if (!isJoin) {
+                db.collection("calls")
+                    .document(item)
+                    .get()
+                    .addOnSuccessListener {
+                        when (it["state"]) {
+                            "callee" -> { //已經在通話了
                                 Toast.makeText(mActivity, "ChatRoom is full", Toast.LENGTH_SHORT).show()
-                            } else {
+                            }
+                            "caller" -> { //目前只有一人
+                                val b = Bundle()
+                                b.putString("RoomID", item)
+                                b.putBoolean("IsJoin", true)
+                                b.putString("Uuid", uuid)
+                                startActivity(Intent(mActivity, RTCActivity::class.java).putExtras(b))
+                            }
+                            "END_CAll" -> { //已結束通話
+                                val b = Bundle()
+                                b.putString("RoomID", item)
+                                b.putBoolean("IsJoin", false)
+                                b.putString("Uuid", uuid)
+                                startActivity(Intent(mActivity, RTCActivity::class.java).putExtras(b))
+                            }
+                            else -> { //初始房間
                                 val b = Bundle()
                                 b.putString("RoomID", item)
                                 b.putBoolean("IsJoin", false)
@@ -85,13 +101,8 @@ class ChatRoomListFragment: Fragment() {
                                 startActivity(Intent(mActivity, RTCActivity::class.java).putExtras(b))
                             }
                         }
-                } else {
-                    val b = Bundle()
-                    b.putString("RoomID", item)
-                    b.putBoolean("IsJoin", true)
-                    b.putString("Uuid", uuid)
-                    startActivity(Intent(mActivity, RTCActivity::class.java).putExtras(b))
-                }
+                    }
+                //}
             }
         })
         binding?.rcList?.adapter = adapter

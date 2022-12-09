@@ -7,6 +7,7 @@ import android.media.projection.MediaProjection
 import android.util.Log
 import com.example.os_finalproject.Data.Answer
 import com.example.os_finalproject.Data.Offer
+import com.example.os_finalproject.signaling.Constants
 import com.google.firebase.firestore.ktx.firestore
 import com.google.firebase.ktx.Firebase
 import org.webrtc.*
@@ -101,7 +102,6 @@ class RTCClient(context: Application, observer: PeerConnection.Observer) {
     private fun PeerConnection.call(sdpObserver: SdpObserver, roomID: String) {
         val constraints = MediaConstraints().apply {
             mandatory.add(MediaConstraints.KeyValuePair("OfferToReceiveAudio", "true")) //允許音訊
-            mandatory.add(MediaConstraints.KeyValuePair("DtlsSrtpKeyAgreement", "true")) //加密
             mandatory.add(MediaConstraints.KeyValuePair("internalSctpDataChannels", "true"))
             mandatory.add(MediaConstraints.KeyValuePair("OfferToReceiveVideo", "true")) //允許影片
         }
@@ -121,8 +121,9 @@ class RTCClient(context: Application, observer: PeerConnection.Observer) {
 //                        val data = Offer(desc?.description, desc?.type?.ordinal, roomID, targetSocketID, userID, userID, targetID)
 //                        RTCSocketManager.instance.sendSDPOffer(data)
                         val offer = hashMapOf(
-                            "sdp" to desc?.description,
-                            "type" to desc?.type
+                            "sdp_offer" to desc?.description,
+                            "type_offer" to desc?.type,
+                            "state" to "caller"
                         )
                         db.collection("calls").document(roomID)
                             .set(offer)
@@ -159,7 +160,6 @@ class RTCClient(context: Application, observer: PeerConnection.Observer) {
     private fun PeerConnection.answer(sdpObserver: SdpObserver, roomID: String) {
         val constraints = MediaConstraints().apply {
             mandatory.add(MediaConstraints.KeyValuePair("OfferToReceiveAudio", "true")) //允許音訊
-            mandatory.add(MediaConstraints.KeyValuePair("DtlsSrtpKeyAgreement","true")) //加密
             mandatory.add(MediaConstraints.KeyValuePair("internalSctpDataChannels", "true"))
             mandatory.add(MediaConstraints.KeyValuePair("OfferToReceiveVideo", "true")) //允許影片
         }
@@ -167,8 +167,9 @@ class RTCClient(context: Application, observer: PeerConnection.Observer) {
         createAnswer(object: SdpObserver by sdpObserver {
             override fun onCreateSuccess(desc: SessionDescription?) {
                 val answer = hashMapOf(
-                    "sdp" to desc?.description,
-                    "type" to desc?.type
+                    "sdp_answer" to desc?.description,
+                    "type_answer" to desc?.type,
+                    "state" to "callee"
                 )
                 db.collection("calls").document(roomID)
                     .set(answer)
@@ -222,7 +223,6 @@ class RTCClient(context: Application, observer: PeerConnection.Observer) {
             = peerConnection?.answer(sdpObserver, roomID)
 
     fun onRemoteSessionReceived(sessionDescription: SessionDescription) {
-        Log.e(Tag, "[remote] ${sessionDescription.description}")
         peerConnection?.setRemoteDescription(object: SdpObserver {
             override fun onCreateSuccess(p0: SessionDescription?) {
                 Log.e(Tag, "[remote] onCreateSuccess: $p0")
@@ -263,7 +263,7 @@ class RTCClient(context: Application, observer: PeerConnection.Observer) {
                 peerConnection?.removeIceCandidates(iceCandidateArray.toTypedArray())
             }
         val endCall = hashMapOf(
-            "type" to "END_CALL"
+            "state" to "END_CALL"
         )
         db.collection("calls").document(roomID)
             .set(endCall)
@@ -274,6 +274,7 @@ class RTCClient(context: Application, observer: PeerConnection.Observer) {
                 Log.e(Tag, "[endCall] Error adding document", e)
             }
 
+        Constants.isIntiatedNow = true
         peerConnection?.close()
         //closedAudio()
         closedVideo()
@@ -295,8 +296,8 @@ class RTCClient(context: Application, observer: PeerConnection.Observer) {
         if (localVideoTrack != null) localVideoTrack?.setEnabled(videoEnable)
     }
 
-    fun enableAudio(audioEnable: Boolean) {
-        if (localAudioTrack != null) localAudioTrack?.setEnabled(audioEnable)
+    fun enableAudio(isMute: Boolean) {
+        if (localAudioTrack != null) localAudioTrack?.setEnabled(!isMute)
     }
 
     fun switchCamera() {
