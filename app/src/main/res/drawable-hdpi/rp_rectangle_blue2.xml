@@ -9,7 +9,7 @@
     <item android:id="@android:id/background" >
         <shape>
             <corners android:radius="10dp" />
-            <solid android:color="#8AD1E9" />
+            <solid android:color="#4A8FE1" />
         </shape>
     </item>
 </ripple>

@@ -26,9 +26,9 @@ class RTCActivity : AppCompatActivity() {
 
     private val Tag = "RTCActivity"
 
-    private lateinit var rtcClient: RTCClient
+    private var rtcClient: RTCClient? = null
 
-    private lateinit var signallingClient: SignalingClient
+    private var signallingClient: SignalingClient? = null
 
     private lateinit var viewModel: DataViewModel
 
@@ -94,8 +94,8 @@ class RTCActivity : AppCompatActivity() {
         rtcClient = RTCClient(application, object : PeerConnectionObserver() {
             override fun onIceCandidate(p0: IceCandidate?) {
                 super.onIceCandidate(p0)
-                signallingClient.sendIceCandidate(p0, isJoin)
-                rtcClient.addIceCandidate(p0)
+                signallingClient?.sendIceCandidate(p0, isJoin)
+                rtcClient?.addIceCandidate(p0)
             }
 
             override fun onAddStream(p0: MediaStream?) {
@@ -144,22 +144,22 @@ class RTCActivity : AppCompatActivity() {
                 Log.e(Tag, "onTrack: $transceiver" )
             }
         })
-        signallingClient =  SignalingClient(roomID, createSignallingClientListener())
+        signallingClient =  SignalingClient(roomID, createSignallingClientListener(), isJoin)
         handleVideoAudioStream()
     }
 
     private fun handleVideoAudioStream() {
-        rtcClient.setAudioStream(uuid)
+        rtcClient?.setAudioStream(uuid)
 
         binding.remoteView.release()
         binding.localView.release()
 
-        rtcClient.initSurfaceView(binding.remoteView, "remote")
-        rtcClient.initSurfaceView(binding.localView, "local")
-        rtcClient.setVideo(binding.localView ,uuid, false)
+        rtcClient?.initSurfaceView(binding.remoteView, "remote")
+        rtcClient?.initSurfaceView(binding.localView, "local")
+        rtcClient?.setVideo(binding.localView ,uuid, false)
 
         if (!isJoin)
-            rtcClient.call(sdpObserver, roomID)
+            rtcClient?.call(sdpObserver, roomID)
     }
 
     private fun createSignallingClientListener() = object : SignalingClientListener {
@@ -171,25 +171,25 @@ class RTCActivity : AppCompatActivity() {
         override fun onOfferReceived(description: SessionDescription) {
             Log.e(Tag, "[Signalling] onOfferReceived")
             binding.remoteView.visibility = View.VISIBLE
-            rtcClient.onRemoteSessionReceived(description)
+            rtcClient?.onRemoteSessionReceived(description)
             Constants.isIntiatedNow = false
-            rtcClient.answer(sdpObserver, roomID)
+            rtcClient?.answer(sdpObserver, roomID)
         }
 
         override fun onAnswerReceived(description: SessionDescription) {
             Log.e(Tag, "[Signalling] onAnswerReceived")
             binding.remoteView.visibility = View.VISIBLE
-            rtcClient.onRemoteSessionReceived(description)
+            rtcClient?.onRemoteSessionReceived(description)
             Constants.isIntiatedNow = false
         }
 
         override fun onIceCandidateReceived(iceCandidate: IceCandidate) {
             Log.e(Tag, "[Signalling] onIceCandidateReceived")
-            rtcClient.addIceCandidate(iceCandidate)
+            rtcClient?.addIceCandidate(iceCandidate)
         }
 
         override fun onCallEnded() {
-            rtcClient.endCall(roomID)
+            rtcClient?.endCall(roomID)
             finish()
             startActivity(Intent(this@RTCActivity, MainActivity::class.java))
         }
@@ -207,12 +207,12 @@ class RTCActivity : AppCompatActivity() {
     private fun setListener() {
         binding.run {
             imgMic.setOnClickListener {
-                rtcClient.enableAudio(!isMute)
+                rtcClient?.enableAudio(!isMute)
                 viewModel.updateController(Controller(!isMute, isVideo, isSpeaker, isBackCamera))
             }
 
             imgVideo.setOnClickListener {
-                rtcClient.enableVideo(!isVideo)
+                rtcClient?.enableVideo(!isVideo)
                 viewModel.updateController(Controller(isMute, !isVideo, isSpeaker, isBackCamera))
             }
 
@@ -224,11 +224,11 @@ class RTCActivity : AppCompatActivity() {
             }
 
             imgCamera.setOnClickListener {
-                rtcClient.switchCamera()
+                rtcClient?.switchCamera()
             }
 
             imgEndCall.setOnClickListener {
-                rtcClient.endCall(roomID)
+                rtcClient?.endCall(roomID)
                 Constants.isCallEnded = true
                 finish()
                 startActivity(Intent(this@RTCActivity, MainActivity::class.java))
@@ -245,5 +245,9 @@ class RTCActivity : AppCompatActivity() {
         binding.localView.release()
 
         audioManager.stop()
+
+        signallingClient = null
+
+        rtcClient?.endCall(roomID)
     }
 }

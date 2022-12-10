@@ -16,6 +16,7 @@ import com.example.os_finalproject.MainActivity
 import com.example.os_finalproject.RTCActivity
 import com.example.os_finalproject.adapter.ListAdapter
 import com.example.os_finalproject.databinding.FragmentChatroomListBinding
+import com.example.os_finalproject.tool.SocketManager
 import com.google.firebase.firestore.ktx.firestore
 import com.google.firebase.ktx.Firebase
 import kotlinx.coroutines.flow.collect
@@ -58,6 +59,8 @@ class ChatRoomListFragment: Fragment() {
             viewModel.updateIsJoin(isJoin)
             Toast.makeText(mActivity, "IsJoin: $isJoin", Toast.LENGTH_SHORT).show()
         }
+
+        initSocket()
     }
 
     private fun setRecyclerView() {
@@ -107,6 +110,10 @@ class ChatRoomListFragment: Fragment() {
         })
         binding?.rcList?.adapter = adapter
         binding?.rcList?.layoutManager = layoutManager
+    }
+
+    private fun initSocket() {
+        //SocketManager.instance.connectUrl()
     }
 
     override fun onDestroy() {

@@ -5,11 +5,18 @@
       <map>
         <entry key="..\:/GitHub/OS_FinalProject/app/src/main/res/drawable-hdpi/btn_gray_light_50.xml" value="0.253" />
         <entry key="..\:/GitHub/OS_FinalProject/app/src/main/res/drawable-hdpi/cameraswitch.xml" value="0.253" />
+        <entry key="..\:/GitHub/OS_FinalProject/app/src/main/res/drawable-hdpi/rp_rectangle_blue2.xml" value="0.218" />
         <entry key="..\:/GitHub/OS_FinalProject/app/src/main/res/drawable-hdpi/rp_rectangle_gray_10.xml" value="0.265" />
+        <entry key="..\:/GitHub/OS_FinalProject/app/src/main/res/drawable-hdpi/rp_rectangle_green.xml" value="0.218" />
+        <entry key="..\:/GitHub/OS_FinalProject/app/src/main/res/drawable-v24/rp_rectangle_blue.xml" value="0.218" />
+        <entry key="..\:/GitHub/OS_FinalProject/app/src/main/res/drawable/frame_blue.xml" value="0.218" />
+        <entry key="..\:/GitHub/OS_FinalProject/app/src/main/res/drawable/frame_white.xml" value="0.218" />
         <entry key="..\:/GitHub/OS_FinalProject/app/src/main/res/layout/activity_rtc.xml" value="0.2" />
         <entry key="..\:/GitHub/OS_FinalProject/app/src/main/res/layout/fragment_chatroom_list.xml" value="0.2598958333333333" />
-        <entry key="..\:/GitHub/OS_FinalProject/app/src/main/res/layout/item_list.xml" value="0.2598958333333333" />
+        <entry key="..\:/GitHub/OS_FinalProject/app/src/main/res/layout/fragment_homepage.xml" value="0.22" />
+        <entry key="..\:/GitHub/OS_FinalProject/app/src/main/res/layout/item_list.xml" value="0.25" />
         <entry key="..\:/GitHub/OS_FinalProject/app/src/main/res/mipmap-anydpi-v26/ic_launcher.xml" value="0.265" />
+        <entry key="..\:/GitHub/OS_FinalProject/app/src/main/res/mipmap-anydpi-v26/ic_launcher_round.xml" value="0.218" />
       </map>
     </option>
   </component>

@@ -14,7 +14,8 @@ import org.webrtc.SessionDescription
 @ExperimentalCoroutinesApi
 class SignalingClient(
     private val roomID : String,
-    private val listener: SignalingClientListener
+    private val listener: SignalingClientListener,
+    private val isJoin: Boolean
 ) : CoroutineScope {
 
     companion object {
@@ -78,7 +79,7 @@ class SignalingClient(
                     if (snapshot != null && snapshot.exists()) {
                         val data = snapshot.data
                         if (data?.containsKey("type_offer")!! &&
-                            data.getValue("type_offer").toString() == "OFFER"
+                            data.getValue("type_offer").toString() == "OFFER" && isJoin
                         ) { //接收者事件
                             listener.onOfferReceived(
                                 SessionDescription(
@@ -87,7 +88,7 @@ class SignalingClient(
                             )
                             SDPtype = "Offer"
                         } else if (data.containsKey("type_answer") &&
-                            data.getValue("type_answer").toString() == "ANSWER"
+                            data.getValue("type_answer").toString() == "ANSWER" && !isJoin
                         ) { //撥打者事件
                             listener.onAnswerReceived(
                                 SessionDescription(
