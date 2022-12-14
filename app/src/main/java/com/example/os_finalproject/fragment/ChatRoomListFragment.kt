@@ -1,28 +1,30 @@
 package com.example.os_finalproject.fragment
 
 import android.content.Intent
+import android.nfc.Tag
 import android.os.Bundle
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.Toast
 import androidx.fragment.app.Fragment
-import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProvider
-import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.example.os_finalproject.Data.DataViewModel
+import com.example.os_finalproject.Data.RoomInfoRes
 import com.example.os_finalproject.MainActivity
 import com.example.os_finalproject.RTCActivity
 import com.example.os_finalproject.adapter.ListAdapter
 import com.example.os_finalproject.databinding.FragmentChatroomListBinding
+import com.example.os_finalproject.tool.DataManager
 import com.example.os_finalproject.tool.SocketManager
 import com.google.firebase.firestore.ktx.firestore
 import com.google.firebase.ktx.Firebase
-import kotlinx.coroutines.flow.collect
 import java.util.*
+import kotlin.collections.ArrayList
 
-class ChatRoomListFragment: Fragment() {
+class ChatRoomListFragment: Fragment(), Observer {
     private lateinit var mActivity: MainActivity
     private var binding: FragmentChatroomListBinding? = null
 
@@ -30,6 +32,7 @@ class ChatRoomListFragment: Fragment() {
     private lateinit var viewModel: DataViewModel
     private var userName = ""
     private var isJoin  = false
+    private var roomInfoList = ArrayList<RoomInfoRes.RoomInfoList>()
 
     val db = Firebase.firestore
 
@@ -60,7 +63,7 @@ class ChatRoomListFragment: Fragment() {
             Toast.makeText(mActivity, "IsJoin: $isJoin", Toast.LENGTH_SHORT).show()
         }
 
-        initSocket()
+        //DataManager.instance.doRoomInfo()
     }
 
     private fun setRecyclerView() {
@@ -73,6 +76,18 @@ class ChatRoomListFragment: Fragment() {
         adapter.setListener(object : ListAdapter.ClickListener {
             override fun onEnterChatRoom(item: String) {
                 val uuid = UUID.randomUUID().toString()
+
+//                roomInfoList.find { it.roomID == item }?.let {
+//                    Log.e("Test", "${it.roomUser.caller} - ${it.roomUser.callee}")
+//                }
+                val b = Bundle()
+                b.putString("RoomID", item)
+                b.putBoolean("IsJoin", true)
+                b.putString("Uuid", uuid)
+                b.putString("UserName", userName)
+                startActivity(Intent(mActivity, RTCActivity::class.java).putExtras(b))
+
+                /**
                 //if (!isJoin) {
                 db.collection("calls")
                     .document(item)
@@ -106,6 +121,7 @@ class ChatRoomListFragment: Fragment() {
                         }
                     }
                 //}
+                */
             }
         })
         binding?.rcList?.adapter = adapter
@@ -113,11 +129,21 @@ class ChatRoomListFragment: Fragment() {
     }
 
     private fun initSocket() {
-        //SocketManager.instance.connectUrl()
+        SocketManager.instance.connectUrl("http://192.168.0.105:8500/")
     }
 
     override fun onDestroy() {
         super.onDestroy()
         binding = null
     }
+
+    override fun update(p0: Observable?, arg: Any?) {
+        when (arg) {
+            is RoomInfoRes -> {
+                roomInfoList.addAll(arg.result.roomInfoList)
+            }
+        }
+    }
+
+
 }

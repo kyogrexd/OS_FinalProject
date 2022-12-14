@@ -4,6 +4,7 @@ import android.content.Intent
 import android.os.Bundle
 import android.util.Log
 import android.view.View
+import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.isGone
 import androidx.lifecycle.ViewModelProvider
@@ -15,11 +16,14 @@ import com.example.os_finalproject.Data.Controller
 import com.example.os_finalproject.Data.DataViewModel
 import com.example.os_finalproject.databinding.ActivityRtcBinding
 import com.example.os_finalproject.signaling.Constants
+import com.example.os_finalproject.tool.SocketManager
 import lab.italkutalk.tool.webRTC.AppSdpObserver
 import lab.italkutalk.tool.webRTC.PeerConnectionObserver
 import lab.italkutalk.tool.webRTC.RTCAudioManager
 import lab.italkutalk.tool.webRTC.RTCClient
+import org.json.JSONObject
 import org.webrtc.*
+import java.util.logging.SocketHandler
 
 class RTCActivity : AppCompatActivity() {
     private lateinit var binding: ActivityRtcBinding
@@ -35,6 +39,12 @@ class RTCActivity : AppCompatActivity() {
     private val audioManager by lazy { RTCAudioManager.create(this) }
 
     private var roomID : String = "test-call"
+
+    private var socketID: String = ""
+
+    private var userName : String = "userA"
+
+    private var isCaller : Boolean = false
 
     private var uuid : String = ""
 
@@ -61,6 +71,7 @@ class RTCActivity : AppCompatActivity() {
         roomID = b.getString("RoomID", "")
         isJoin = b.getBoolean("IsJoin", false)
         uuid = b.getString("Uuid", "")
+        userName = b.getString("UserName", "")
 
         audioManager.start(object : RTCAudioManager.AudioManagerEvents {
             override fun onAudioDeviceChanged(
@@ -70,10 +81,6 @@ class RTCActivity : AppCompatActivity() {
                 Log.e(Tag, "selectedAudioDevice: $selectedAudioDevice, availableAudioDevices: $availableAudioDevices") }
             })
         audioManager.setDefaultAudioDevice(RTCAudioManager.AudioDevice.SPEAKER_PHONE)
-
-        init()
-        initDisplay()
-        setListener()
 
         viewModel = ViewModelProvider(this)[DataViewModel::class.java]
         viewModel.controller.observe(this) {
@@ -88,13 +95,57 @@ class RTCActivity : AppCompatActivity() {
                 imgAudio.setImageDrawable(getDrawable(if (isSpeaker) R.drawable.sound_on else R.drawable.sound_off))
             }
         }
+
+        initSocket()
+        //initRTCClient()
+        initDisplay()
+        setListener()
     }
 
-    private fun init() {
+    private fun initSocket() {
+        SocketManager.instance.run {
+            connectUrl("http://192.168.0.101:8500/")
+
+            on("connected") {
+                runOnUiThread {
+                    socketID = it.getString("socketID")
+
+                    val jsonObject = JSONObject().also {
+                        it.put("roomID", roomID)
+                        it.put("userName", userName)
+                    }
+                    emit("joinRoom", jsonObject)
+                }
+            }
+
+            on("startCall") {
+                runOnUiThread {
+                    isCaller = it.getBoolean("isCaller")
+                    Toast.makeText(this@RTCActivity, "${isCaller}", Toast.LENGTH_SHORT).show()
+                    //initRTCClient()
+                }
+            }
+
+            on("targetLeave") {
+                runOnUiThread {
+                    Toast.makeText(this@RTCActivity, "對方已離開", Toast.LENGTH_SHORT).show()
+                }
+            }
+
+            on("error") {
+                runOnUiThread {
+                    Toast.makeText(this@RTCActivity, it.getString("errMsg"), Toast.LENGTH_SHORT).show()
+                    finish()
+                }
+            }
+        }
+    }
+
+    private fun initRTCClient() {
         rtcClient = RTCClient(application, object : PeerConnectionObserver() {
             override fun onIceCandidate(p0: IceCandidate?) {
                 super.onIceCandidate(p0)
-                signallingClient?.sendIceCandidate(p0, isJoin)
+                //signallingClient?.sendIceCandidate(p0, isJoin)
                 rtcClient?.addIceCandidate(p0)
             }
 
@@ -144,7 +195,7 @@ class RTCActivity : AppCompatActivity() {
                 Log.e(Tag, "onTrack: $transceiver" )
             }
         })
-        signallingClient =  SignalingClient(roomID, createSignallingClientListener(), isJoin)
+        //signallingClient =  SignalingClient(roomID, createSignallingClientListener(), isJoin)
         handleVideoAudioStream()
     }
 
@@ -158,42 +209,41 @@ class RTCActivity : AppCompatActivity() {
         rtcClient?.initSurfaceView(binding.localView, "local")
         rtcClient?.setVideo(binding.localView ,uuid, false)
 
-        if (!isJoin)
-            rtcClient?.call(sdpObserver, roomID)
+        if (isCaller) rtcClient?.call(sdpObserver, roomID)
     }
 
-    private fun createSignallingClientListener() = object : SignalingClientListener {
-        override fun onConnectionEstablished() {
-            Log.e(Tag, "[Signalling] onConnectionEstablished")
-            binding.imgEndCall.isClickable = true
-        }
-
-        override fun onOfferReceived(description: SessionDescription) {
-            Log.e(Tag, "[Signalling] onOfferReceived")
-            binding.remoteView.visibility = View.VISIBLE
-            rtcClient?.onRemoteSessionReceived(description)
-            Constants.isIntiatedNow = false
-            rtcClient?.answer(sdpObserver, roomID)
-        }
-
-        override fun onAnswerReceived(description: SessionDescription) {
-            Log.e(Tag, "[Signalling] onAnswerReceived")
-            binding.remoteView.visibility = View.VISIBLE
-            rtcClient?.onRemoteSessionReceived(description)
-            Constants.isIntiatedNow = false
-        }
-
-        override fun onIceCandidateReceived(iceCandidate: IceCandidate) {
-            Log.e(Tag, "[Signalling] onIceCandidateReceived")
-            rtcClient?.addIceCandidate(iceCandidate)
-        }
-
-        override fun onCallEnded() {
-            rtcClient?.endCall(roomID)
-            finish()
-            startActivity(Intent(this@RTCActivity, MainActivity::class.java))
-        }
-    }
+//    private fun createSignallingClientListener() = object : SignalingClientListener {
+//        override fun onConnectionEstablished() {
+//            Log.e(Tag, "[Signalling] onConnectionEstablished")
+//            binding.imgEndCall.isClickable = true
+//        }
+//
+//        override fun onOfferReceived(description: SessionDescription) {
+//            Log.e(Tag, "[Signalling] onOfferReceived")
+//            binding.remoteView.visibility = View.VISIBLE
+//            rtcClient?.onRemoteSessionReceived(description)
+//            Constants.isIntiatedNow = false
+//            rtcClient?.answer(sdpObserver, roomID)
+//        }
+//
+//        override fun onAnswerReceived(description: SessionDescription) {
+//            Log.e(Tag, "[Signalling] onAnswerReceived")
+//            binding.remoteView.visibility = View.VISIBLE
+//            rtcClient?.onRemoteSessionReceived(description)
+//            Constants.isIntiatedNow = false
+//        }
+//
+//        override fun onIceCandidateReceived(iceCandidate: IceCandidate) {
+//            Log.e(Tag, "[Signalling] onIceCandidateReceived")
+//            rtcClient?.addIceCandidate(iceCandidate)
+//        }
+//
+//        override fun onCallEnded() {
+//            rtcClient?.endCall(roomID)
+//            finish()
+//            startActivity(Intent(this@RTCActivity, MainActivity::class.java))
+//        }
+//    }
 
     private fun initDisplay() {
         binding.run {
@@ -228,6 +278,13 @@ class RTCActivity : AppCompatActivity() {
             }
 
             imgEndCall.setOnClickListener {
+                val jsonObject = JSONObject().also {
+                    it.put("roomID", roomID)
+                    it.put("userName", userName)
+                    it.put("socketID", socketID)
+                }
+                SocketManager.instance.emit("endCall", jsonObject)
+
                 rtcClient?.endCall(roomID)
                 Constants.isCallEnded = true
                 finish()
@@ -246,8 +303,10 @@ class RTCActivity : AppCompatActivity() {
 
         audioManager.stop()
 
-        signallingClient = null
+        //signallingClient = null
 
         rtcClient?.endCall(roomID)
+
+        SocketManager.instance.disconnect()
     }
 }

@@ -14,14 +14,16 @@ import android.widget.TextView
 import android.widget.Toast
 import androidx.fragment.app.Fragment
 import androidx.viewpager2.widget.ViewPager2
+import com.example.os_finalproject.Data.RoomInfoRes
 import com.example.os_finalproject.adapter.ViewPager2Adapter
 import com.example.os_finalproject.databinding.ActivityMainBinding
 import com.example.os_finalproject.fragment.ChatRoomListFragment
 import com.example.os_finalproject.fragment.HomePageFragment
 import com.example.os_finalproject.tool.*
 import com.google.android.material.snackbar.Snackbar
+import java.util.*
 
-class MainActivity : AppCompatActivity() {
+class MainActivity : AppCompatActivity(), Observer {
     private lateinit var binding: ActivityMainBinding
     private lateinit var adapter: ViewPager2Adapter
     private val fragments = arrayOf<Fragment>(
@@ -95,5 +97,13 @@ class MainActivity : AppCompatActivity() {
         }
         snackBar.view.alpha = 0.9f
         snackBar.show()
+    }
+
+    override fun update(p0: Observable?, arg: Any?) {
+        when (arg) {
+            is RoomInfoRes -> {
+
+            }
+        }
     }
 }

@@ -8,8 +8,10 @@ import android.util.Log
 import com.example.os_finalproject.Data.Answer
 import com.example.os_finalproject.Data.Offer
 import com.example.os_finalproject.signaling.Constants
+import com.example.os_finalproject.tool.SocketManager
 import com.google.firebase.firestore.ktx.firestore
 import com.google.firebase.ktx.Firebase
+import org.json.JSONObject
 import org.webrtc.*
 import java.nio.ByteBuffer
 
@@ -125,14 +127,14 @@ class RTCClient(context: Application, observer: PeerConnection.Observer) {
                             "type_offer" to desc?.type,
                             "state" to "caller"
                         )
-                        db.collection("calls").document(roomID)
-                            .set(offer)
-                            .addOnSuccessListener {
-                                Log.e(Tag, "[offer/localDesc] DocumentSnapshot added")
-                            }
-                            .addOnFailureListener { e ->
-                                Log.e(Tag, "[offer/localDesc] Error adding document", e)
-                            }
+//                        db.collection("calls").document(roomID)
+//                            .set(offer)
+//                            .addOnSuccessListener {
+//                                Log.e(Tag, "[offer/localDesc] DocumentSnapshot added")
+//                            }
+//                            .addOnFailureListener { e ->
+//                                Log.e(Tag, "[offer/localDesc] Error adding document", e)
+//                            }
                         Log.e(Tag, "[offer/localDesc] onSetSuccess")
                     }
 
@@ -171,14 +173,14 @@ class RTCClient(context: Application, observer: PeerConnection.Observer) {
                     "type_answer" to desc?.type,
                     "state" to "callee"
                 )
-                db.collection("calls").document(roomID)
-                    .set(answer)
-                    .addOnSuccessListener {
-                        Log.e(Tag, "[answer] DocumentSnapshot added")
-                    }
-                    .addOnFailureListener { e ->
-                        Log.e(Tag, "[answer] Error adding document", e)
-                    }
+//                db.collection("calls").document(roomID)
+//                    .set(answer)
+//                    .addOnSuccessListener {
+//                        Log.e(Tag, "[answer] DocumentSnapshot added")
+//                    }
+//                    .addOnFailureListener { e ->
+//                        Log.e(Tag, "[answer] Error adding document", e)
+//                    }
 
                 //設定localSDP
                 setLocalDescription(object: SdpObserver {
@@ -247,32 +249,32 @@ class RTCClient(context: Application, observer: PeerConnection.Observer) {
         peerConnection?.addIceCandidate(iceCandidate)
     }
 
-    fun endCall( roomID: String) {
-        db.collection("calls").document(roomID).collection("candidates")
-            .get().addOnSuccessListener {
-                val iceCandidateArray: MutableList<IceCandidate> = mutableListOf()
-                for ( dataSnapshot in it) {
-                    if (dataSnapshot.contains("type") && dataSnapshot["type"]=="offerCandidate") {
-                        val offerCandidate = dataSnapshot
-                        iceCandidateArray.add(IceCandidate(offerCandidate["sdpMid"].toString(), Math.toIntExact(offerCandidate["sdpMLineIndex"] as Long), offerCandidate["sdp"].toString()))
-                    } else if (dataSnapshot.contains("type") && dataSnapshot["type"]=="answerCandidate") {
-                        val answerCandidate = dataSnapshot
-                        iceCandidateArray.add(IceCandidate(answerCandidate["sdpMid"].toString(), Math.toIntExact(answerCandidate["sdpMLineIndex"] as Long), answerCandidate["sdp"].toString()))
-                    }
-                }
-                peerConnection?.removeIceCandidates(iceCandidateArray.toTypedArray())
-            }
-        val endCall = hashMapOf(
-            "state" to "END_CALL"
-        )
-        db.collection("calls").document(roomID)
-            .set(endCall)
-            .addOnSuccessListener {
-                Log.e(Tag, "[endCall] DocumentSnapshot added")
-            }
-            .addOnFailureListener { e ->
-                Log.e(Tag, "[endCall] Error adding document", e)
-            }
+    fun endCall(roomID: String) {
+//        db.collection("calls").document(roomID).collection("candidates")
+//            .get().addOnSuccessListener {
+//                val iceCandidateArray: MutableList<IceCandidate> = mutableListOf()
+//                for ( dataSnapshot in it) {
+//                    if (dataSnapshot.contains("type") && dataSnapshot["type"]=="offerCandidate") {
+//                        val offerCandidate = dataSnapshot
+//                        iceCandidateArray.add(IceCandidate(offerCandidate["sdpMid"].toString(), Math.toIntExact(offerCandidate["sdpMLineIndex"] as Long), offerCandidate["sdp"].toString()))
+//                    } else if (dataSnapshot.contains("type") && dataSnapshot["type"]=="answerCandidate") {
+//                        val answerCandidate = dataSnapshot
+//                        iceCandidateArray.add(IceCandidate(answerCandidate["sdpMid"].toString(), Math.toIntExact(answerCandidate["sdpMLineIndex"] as Long), answerCandidate["sdp"].toString()))
+//                    }
+//                }
+//                peerConnection?.removeIceCandidates(iceCandidateArray.toTypedArray())
+//            }
+//        val endCall = hashMapOf(
+//            "state" to "END_CALL"
+//        )
+//        db.collection("calls").document(roomID)
+//            .set(endCall)
+//            .addOnSuccessListener {
+//                Log.e(Tag, "[endCall] DocumentSnapshot added")
+//            }
+//            .addOnFailureListener { e ->
+//                Log.e(Tag, "[endCall] Error adding document", e)
+//            }
 
         Constants.isIntiatedNow = true
         peerConnection?.close()
