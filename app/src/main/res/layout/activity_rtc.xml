@@ -81,7 +81,7 @@
             android:layout_weight="1"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:visibility="visible"
+            android:visibility="gone"
             app:srcCompat="@drawable/share" />
     </LinearLayout>
 
@@ -99,11 +99,11 @@
         android:text="00:00:00"
         android:textColor="#FFFFFF"
         android:textSize="18dp"
-        android:visibility="visible"
+        android:visibility="invisible"
         app:layout_constraintEnd_toEndOf="@+id/clLocalView"
         app:layout_constraintStart_toStartOf="@+id/clLocalView"
         app:layout_constraintTop_toTopOf="parent"
-        tools:visibility="visible" />
+        tools:visibility="invisible" />
 
     <LinearLayout
         android:layout_width="wrap_content"

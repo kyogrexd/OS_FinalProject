@@ -42,6 +42,8 @@ class RTCActivity : AppCompatActivity() {
 
     private var socketID: String = ""
 
+    private var targetSocketID: String = ""
+
     private var userName : String = "userA"
 
     private var isCaller : Boolean = false
@@ -83,6 +85,7 @@ class RTCActivity : AppCompatActivity() {
         audioManager.setDefaultAudioDevice(RTCAudioManager.AudioDevice.SPEAKER_PHONE)
 
         viewModel = ViewModelProvider(this)[DataViewModel::class.java]
+        viewModel.updateController(Controller(isMute, isVideo, isSpeaker, isBackCamera))
         viewModel.controller.observe(this) {
             isMute = it.isMute
             isVideo = it.isVideo
@@ -94,17 +97,18 @@ class RTCActivity : AppCompatActivity() {
                 imgVideo.setImageDrawable(getDrawable(if (isVideo) R.drawable.video_on else R.drawable.video_off))
                 imgAudio.setImageDrawable(getDrawable(if (isSpeaker) R.drawable.sound_on else R.drawable.sound_off))
             }
+
+            setController()
         }
 
         initSocket()
-        //initRTCClient()
         initDisplay()
         setListener()
     }
 
     private fun initSocket() {
         SocketManager.instance.run {
-            connectUrl("http://192.168.0.101:8500/")
+            connectUrl("http://192.168.0.102:8500/")
 
             on("connected") {
                 runOnUiThread {
@@ -120,15 +124,58 @@ class RTCActivity : AppCompatActivity() {
 
             on("startCall") {
                 runOnUiThread {
-                    isCaller = it.getBoolean("isCaller")
                     Toast.makeText(this@RTCActivity, "${isCaller}", Toast.LENGTH_SHORT).show()
-                    //initRTCClient()
+                    isCaller = it.getBoolean("isCaller")
+                    targetSocketID = it.getString("targetSocketID")
+                    binding.remoteView.visibility = View.VISIBLE
+                    initRTCClient()
+                }
+            }
+
+            on("offer") {
+                runOnUiThread {
+                    Toast.makeText(this@RTCActivity, "[on] offer", Toast.LENGTH_SHORT).show()
+                    val type = when (it.getInt("type")) {
+                        0 -> SessionDescription.Type.OFFER
+                        1 -> SessionDescription.Type.PRANSWER
+                        else -> SessionDescription.Type.ANSWER
+                    }
+
+                    //設定 RemoteDescription
+                    rtcClient?.onRemoteSessionReceived(SessionDescription(type, it.getString("sdp")))
+                    //發送 answer
+                    rtcClient?.answer(sdpObserver, roomID, socketID, targetSocketID)
+                }
+            }
+
+            on("answer") {
+                runOnUiThread {
+                    Toast.makeText(this@RTCActivity, "[on] answer", Toast.LENGTH_SHORT).show()
+                    val type = when (it.getInt("type")) {
+                        0 -> SessionDescription.Type.OFFER
+                        1 -> SessionDescription.Type.PRANSWER
+                        else -> SessionDescription.Type.ANSWER
+                    }
+
+                    //設定 RemoteDescription
+                    rtcClient?.onRemoteSessionReceived(SessionDescription(type, it.getString("sdp")))
+                }
+            }
+
+            on("ice_candidates") {
+                runOnUiThread {
+                    rtcClient?.addIceCandidate(IceCandidate(it.getString("sdpMid"),
+                        it.getInt("sdpMLineIndex"), it.getString("candidateSdp")))
                 }
             }
 
             on("targetLeave") {
                 runOnUiThread {
                     Toast.makeText(this@RTCActivity, "對方已離開", Toast.LENGTH_SHORT).show()
+
+                    binding.remoteView.release()
+                    binding.imgLoading.visibility = View.VISIBLE
+                    binding.remoteView.visibility = View.GONE
                 }
             }
 
@@ -146,6 +193,17 @@ class RTCActivity : AppCompatActivity() {
             override fun onIceCandidate(p0: IceCandidate?) {
                 super.onIceCandidate(p0)
                 //signallingClient?.sendIceCandidate(p0, isJoin)
+
+                val jsonObject = JSONObject().also {
+                    it.put("roomID", roomID)
+                    it.put("socketID", socketID)
+                    it.put("targetSocketID", targetSocketID)
+                    it.put("sdpMid", p0?.sdpMid)
+                    it.put("sdpMLineIndex", p0?.sdpMLineIndex)
+                    it.put("candidateSdp", p0?.sdp)
+                }
+                SocketManager.instance.emit("ice_candidates", jsonObject)
+
                 rtcClient?.addIceCandidate(p0)
             }
 
@@ -181,6 +239,8 @@ class RTCActivity : AppCompatActivity() {
                         val track: MediaStreamTrack? = p0?.track()
                         if (track is VideoTrack) {
                             binding.imgLoading.visibility = View.GONE
+                            binding.remoteView.visibility = View.VISIBLE
+
                             remoteVideoTrack = track
                             remoteVideoTrack?.addSink(binding.remoteView)
                             remoteVideoTrack?.setEnabled(true)
@@ -204,12 +264,15 @@ class RTCActivity : AppCompatActivity() {
 
         binding.remoteView.release()
         binding.localView.release()
+        binding.localView.setZOrderOnTop(true)
 
         rtcClient?.initSurfaceView(binding.remoteView, "remote")
         rtcClient?.initSurfaceView(binding.localView, "local")
         rtcClient?.setVideo(binding.localView ,uuid, false)
 
-        if (isCaller) rtcClient?.call(sdpObserver, roomID)
+        setController()
+
+        if (isCaller) rtcClient?.call(sdpObserver, roomID, socketID, targetSocketID)
     }
 
 //    private fun createSignallingClientListener() = object : SignalingClientListener {
@@ -254,22 +317,25 @@ class RTCActivity : AppCompatActivity() {
         }
     }
 
+    private fun setController() {
+        rtcClient?.enableAudio(isMute)
+        rtcClient?.enableVideo(isVideo)
+        audioManager.setDefaultAudioDevice(
+            if (isSpeaker) RTCAudioManager.AudioDevice.SPEAKER_PHONE
+            else RTCAudioManager.AudioDevice.EARPIECE)
+    }
+
     private fun setListener() {
         binding.run {
             imgMic.setOnClickListener {
-                rtcClient?.enableAudio(!isMute)
                 viewModel.updateController(Controller(!isMute, isVideo, isSpeaker, isBackCamera))
             }
 
             imgVideo.setOnClickListener {
-                rtcClient?.enableVideo(!isVideo)
                 viewModel.updateController(Controller(isMute, !isVideo, isSpeaker, isBackCamera))
             }
 
             imgAudio.setOnClickListener {
-                audioManager.setDefaultAudioDevice(
-                    if (!isSpeaker) RTCAudioManager.AudioDevice.SPEAKER_PHONE
-                    else RTCAudioManager.AudioDevice.EARPIECE)
                 viewModel.updateController(Controller(isMute, isVideo, !isSpeaker, isBackCamera))
             }
 

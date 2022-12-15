@@ -101,7 +101,7 @@ class RTCClient(context: Application, observer: PeerConnection.Observer) {
         return peerConnectionFactory.createPeerConnection(rtcConfig, observer)
     }
 
-    private fun PeerConnection.call(sdpObserver: SdpObserver, roomID: String) {
+    private fun PeerConnection.call(sdpObserver: SdpObserver, roomID: String, socketID: String, targetSocketID: String) {
         val constraints = MediaConstraints().apply {
             mandatory.add(MediaConstraints.KeyValuePair("OfferToReceiveAudio", "true")) //允許音訊
             mandatory.add(MediaConstraints.KeyValuePair("internalSctpDataChannels", "true"))
@@ -117,16 +117,23 @@ class RTCClient(context: Application, observer: PeerConnection.Observer) {
                     }
 
                     override fun onSetSuccess() {
-//                        Log.e(Tag, "[offer/localDesc] onSetSuccess")
-//                        //撥打者傳送本地SDP -> socket on "offer"
-//                        Log.e(Tag, "[Caller SDP] type: ${desc?.type} \n ${desc?.description}")
-//                        val data = Offer(desc?.description, desc?.type?.ordinal, roomID, targetSocketID, userID, userID, targetID)
-//                        RTCSocketManager.instance.sendSDPOffer(data)
-                        val offer = hashMapOf(
-                            "sdp_offer" to desc?.description,
-                            "type_offer" to desc?.type,
-                            "state" to "caller"
-                        )
+                        Log.e(Tag, "[offer/localDesc] onSetSuccess")
+                        //撥打者傳送本地SDP -> socket on "offer"
+                        Log.e(Tag, "[Caller SDP] type: ${desc?.type} \n ${desc?.description}")
+                        val jsonObject = JSONObject().also {
+                            it.put("roomID", roomID)
+                            it.put("socketID", socketID)
+                            it.put("targetSocketID", targetSocketID)
+                            it.put("sdp", desc?.description)
+                            it.put("type", desc?.type?.ordinal)
+                        }
+                        SocketManager.instance.emit("offer", jsonObject)
+
+//                        val offer = hashMapOf(
+//                            "sdp_offer" to desc?.description,
+//                            "type_offer" to desc?.type,
+//                            "state" to "caller"
+//                        )
 //                        db.collection("calls").document(roomID)
 //                            .set(offer)
 //                            .addOnSuccessListener {
@@ -159,7 +166,7 @@ class RTCClient(context: Application, observer: PeerConnection.Observer) {
         }, constraints)
     }
 
-    private fun PeerConnection.answer(sdpObserver: SdpObserver, roomID: String) {
+    private fun PeerConnection.answer(sdpObserver: SdpObserver, roomID: String, socketID: String, targetSocketID: String) {
         val constraints = MediaConstraints().apply {
             mandatory.add(MediaConstraints.KeyValuePair("OfferToReceiveAudio", "true")) //允許音訊
             mandatory.add(MediaConstraints.KeyValuePair("internalSctpDataChannels", "true"))
@@ -168,11 +175,11 @@ class RTCClient(context: Application, observer: PeerConnection.Observer) {
 
         createAnswer(object: SdpObserver by sdpObserver {
             override fun onCreateSuccess(desc: SessionDescription?) {
-                val answer = hashMapOf(
-                    "sdp_answer" to desc?.description,
-                    "type_answer" to desc?.type,
-                    "state" to "callee"
-                )
+//                val answer = hashMapOf(
+//                    "sdp_answer" to desc?.description,
+//                    "type_answer" to desc?.type,
+//                    "state" to "callee"
+//                )
 //                db.collection("calls").document(roomID)
 //                    .set(answer)
 //                    .addOnSuccessListener {
@@ -192,8 +199,14 @@ class RTCClient(context: Application, observer: PeerConnection.Observer) {
                         Log.e(Tag, "[answer/localDesc] onSetSuccess")
                         //接收者傳送本地SDP -> socket server -> 撥打者
                         Log.e(Tag, "[Callee SDP] type: ${desc?.type} \n${desc?.description}")
-//                        val data = Answer(desc?.description, desc?.type?.ordinal, roomID, targetSocketID, targetID, userID ,targetID)
-//                        RTCSocketManager.instance.sendSDPAnswer(data)
+                        val jsonObject = JSONObject().also {
+                            it.put("roomID", roomID)
+                            it.put("socketID", socketID)
+                            it.put("targetSocketID", targetSocketID)
+                            it.put("sdp", desc?.description)
+                            it.put("type", desc?.type?.ordinal)
+                        }
+                        SocketManager.instance.emit("answer", jsonObject)
                     }
 
                     override fun onCreateFailure(p0: String?) {
@@ -218,11 +231,11 @@ class RTCClient(context: Application, observer: PeerConnection.Observer) {
         }, constraints)
     }
 
-    fun call(sdpObserver: SdpObserver, roomID: String)
-            = peerConnection?.call(sdpObserver, roomID)
+    fun call(sdpObserver: SdpObserver, roomID: String, socketID: String, targetSocketID: String)
+            = peerConnection?.call(sdpObserver, roomID, socketID, targetSocketID)
 
-    fun answer(sdpObserver: SdpObserver, roomID: String)
-            = peerConnection?.answer(sdpObserver, roomID)
+    fun answer(sdpObserver: SdpObserver, roomID: String, socketID: String, targetSocketID: String)
+            = peerConnection?.answer(sdpObserver, roomID, socketID, targetSocketID)
 
     fun onRemoteSessionReceived(sessionDescription: SessionDescription) {
         peerConnection?.setRemoteDescription(object: SdpObserver {
