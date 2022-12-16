@@ -2,6 +2,7 @@ package com.example.os_finalproject.tool
 
 import android.util.Log
 import com.example.os_finalproject.Data.RoomInfoRes
+import com.example.os_finalproject.Data.URL
 import com.google.gson.Gson
 import okhttp3.*
 import okhttp3.ResponseBody.Companion.toResponseBody
@@ -10,8 +11,6 @@ import java.util.*
 import java.util.concurrent.TimeUnit
 
 class DataManager private constructor() : Observable(){
-
-    val API_URL = "http://192.168.0.105:8000/"
 
     companion object {
         val instance : DataManager = DataManager()
@@ -73,5 +72,5 @@ class DataManager private constructor() : Observable(){
     /**
      * function
      */
-    fun doRoomInfo() = httpGet("${API_URL}api/roomInfo", RoomInfoRes::class.java)
+    fun doRoomInfo() = httpGet("${URL}:8000/api/roomInfo", RoomInfoRes::class.java)
 }

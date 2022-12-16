@@ -5,8 +5,6 @@ import android.content.Context
 import android.content.Intent
 import android.media.projection.MediaProjection
 import android.util.Log
-import com.example.os_finalproject.Data.Answer
-import com.example.os_finalproject.Data.Offer
 import com.example.os_finalproject.signaling.Constants
 import com.example.os_finalproject.tool.SocketManager
 import com.google.firebase.firestore.ktx.firestore
@@ -339,19 +337,19 @@ class RTCClient(context: Application, observer: PeerConnection.Observer) {
         }
     }
     //設定視訊
-    fun setVideo(localVideoOutput: SurfaceViewRenderer, uuid: String, isToggle: Boolean) {
+    fun setVideo(localVideoOutput: SurfaceViewRenderer, uuid: String, isToggle: Boolean, isVideo: Boolean) {
         if (!isToggle) { //初始設定
-            setVideoStream(localVideoOutput, uuid)
+            setVideoStream(localVideoOutput, uuid, isVideo)
             peerConnection?.addTrack(localVideoTrack)
         } else { //切回視訊
             videoCapturer.stopCapture()
-            setVideoStream(localVideoOutput, uuid)
+            setVideoStream(localVideoOutput, uuid, isVideo)
             peerConnection?.senders?.find { it.track()?.kind() == "video" }?.setTrack(localVideoTrack, true)
         }
     }
 
     //設定視訊媒體流
-    fun setVideoStream(localVideoOutput: SurfaceViewRenderer, uuid: String) {
+    fun setVideoStream(localVideoOutput: SurfaceViewRenderer, uuid: String, isVideo: Boolean) {
         surfaceTextureHelper = SurfaceTextureHelper.create(Thread.currentThread().name, rootEglBase.eglBaseContext)
         videoCapturer = getVideoCapturer(context)
         localVideoSource = peerConnectionFactory.createVideoSource(videoCapturer.isScreencast)
@@ -374,13 +372,13 @@ class RTCClient(context: Application, observer: PeerConnection.Observer) {
 
         localVideoTrack = peerConnectionFactory.createVideoTrack("track_${uuid}_video", localVideoSource)
         localVideoTrack?.addSink(localVideoOutput)
-        localVideoTrack?.setEnabled(!RTCConstants.instance.isVideoPaused)
+        localVideoTrack?.setEnabled(isVideo)
     }
 
     //設定音訊
-    fun setAudioStream(uuid: String) {
+    fun setAudioStream(uuid: String, isMute: Boolean) {
         localAudioTrack = peerConnectionFactory.createAudioTrack("track_${uuid}_audio", audioSource)
-        localAudioTrack?.setEnabled(!RTCConstants.instance.isMute)
+        localAudioTrack?.setEnabled(!isMute)
         peerConnection?.addTrack(localAudioTrack)
     }
 

@@ -14,6 +14,7 @@ import com.developerspace.webrtcsample.SignalingClient
 import com.developerspace.webrtcsample.SignalingClientListener
 import com.example.os_finalproject.Data.Controller
 import com.example.os_finalproject.Data.DataViewModel
+import com.example.os_finalproject.Data.URL
 import com.example.os_finalproject.databinding.ActivityRtcBinding
 import com.example.os_finalproject.signaling.Constants
 import com.example.os_finalproject.tool.SocketManager
@@ -108,7 +109,7 @@ class RTCActivity : AppCompatActivity() {
 
     private fun initSocket() {
         SocketManager.instance.run {
-            connectUrl("http://192.168.0.102:8500/")
+            connectUrl("${URL}:8500/")
 
             on("connected") {
                 runOnUiThread {
@@ -260,7 +261,7 @@ class RTCActivity : AppCompatActivity() {
     }
 
     private fun handleVideoAudioStream() {
-        rtcClient?.setAudioStream(uuid)
+        rtcClient?.setAudioStream(uuid, isMute)
 
         binding.remoteView.release()
         binding.localView.release()
@@ -268,7 +269,7 @@ class RTCActivity : AppCompatActivity() {
 
         rtcClient?.initSurfaceView(binding.remoteView, "remote")
         rtcClient?.initSurfaceView(binding.localView, "local")
-        rtcClient?.setVideo(binding.localView ,uuid, false)
+        rtcClient?.setVideo(binding.localView ,uuid, false, isVideo)
 
         setController()
 

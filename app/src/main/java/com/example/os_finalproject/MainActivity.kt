@@ -54,6 +54,7 @@ class MainActivity : AppCompatActivity(), Observer {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        DataManager.instance.addObserver(this)
 
         binding = ActivityMainBinding.inflate(LayoutInflater.from(this))
         setContentView(binding.root)
@@ -71,14 +72,33 @@ class MainActivity : AppCompatActivity(), Observer {
             override fun onPageScrolled(p0: Int, p1: Float, p2: Int) {}
 
             override fun onPageSelected(position: Int) {
-                if (position == 0) binding.viewPager2.isUserInputEnabled = false
+                when (position) {
+                    0 -> {
+                        binding.viewPager2.isUserInputEnabled = false
+                        (fragments[1] as ChatRoomListFragment).cancelTimer()
+                    }
+                    1 -> {
+                        (fragments[1] as ChatRoomListFragment).setUpdateTimer()
+                    }
+                }
             }
         })
+    }
+
+    override fun onResume() {
+        super.onResume()
+        DataManager.instance.addObserver(this)
+    }
+
+    override fun onStop() {
+        super.onStop()
+        DataManager.instance.deleteObserver(this)
     }
 
     fun setPage() {
         binding.viewPager2.currentItem = 1
         binding.viewPager2.isUserInputEnabled = true
+        DataManager.instance.doRoomInfo()
         Toast.makeText(this, "Login Success", Toast.LENGTH_SHORT).show()
     }
 

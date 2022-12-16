@@ -1,14 +1,18 @@
 package com.example.os_finalproject.adapter
 
+import android.annotation.SuppressLint
+import android.content.Context
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.TextView
 import androidx.recyclerview.widget.RecyclerView
+import com.example.os_finalproject.Data.RoomInfoRes
 import com.example.os_finalproject.R
 import com.example.os_finalproject.databinding.ItemListBinding
 
-class ListAdapter(private val list: ArrayList<String>): RecyclerView.Adapter<ListAdapter.ViewHolder>() {
+class ListAdapter(val context: Context, private val list: ArrayList<String>, private val roomInfoList: ArrayList<RoomInfoRes.RoomInfoList>)
+    : RecyclerView.Adapter<ListAdapter.ViewHolder>() {
 
     private lateinit var listener: ClickListener
 
@@ -30,6 +34,18 @@ class ListAdapter(private val list: ArrayList<String>): RecyclerView.Adapter<Lis
         val item = list[position]
 
         holder.binding.tvContent.text = item
-        holder.binding.tvContent.setOnClickListener { listener.onEnterChatRoom(item) }
+        holder.binding.clItem.setOnClickListener { listener.onEnterChatRoom(item) }
+
+        holder.binding.tvCount.text = "Number: 0"
+
+        roomInfoList.find { it.roomID == item }?.let {
+            holder.binding.tvCount.text =
+                if (it.roomUser.size < 2) "Number: ${it.roomUser.size}"
+                else "Full"
+            holder.binding.tvCount.background = context.getDrawable(
+                if (it.roomUser.size < 2) R.drawable.rp_rectangle_green
+                else R.drawable.rp_rectangle_red
+            )
+        }
     }
 }

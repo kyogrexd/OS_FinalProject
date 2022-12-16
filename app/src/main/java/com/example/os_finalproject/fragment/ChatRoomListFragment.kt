@@ -33,6 +33,7 @@ class ChatRoomListFragment: Fragment(), Observer {
     private var userName = ""
     private var isJoin  = false
     private var roomInfoList = ArrayList<RoomInfoRes.RoomInfoList>()
+    private var timer = Timer()
 
     val db = Firebase.firestore
 
@@ -48,6 +49,7 @@ class ChatRoomListFragment: Fragment(), Observer {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
+        DataManager.instance.addObserver(this)
 
         viewModel = ViewModelProvider(mActivity)[DataViewModel::class.java]
         viewModel.userName.observe(viewLifecycleOwner) {name ->
@@ -58,12 +60,21 @@ class ChatRoomListFragment: Fragment(), Observer {
         setRecyclerView()
 
         binding?.tvName?.setOnClickListener {
-            isJoin = !isJoin
-            viewModel.updateIsJoin(isJoin)
-            Toast.makeText(mActivity, "IsJoin: $isJoin", Toast.LENGTH_SHORT).show()
+//            isJoin = !isJoin
+//            viewModel.updateIsJoin(isJoin)
+//            Toast.makeText(mActivity, "IsJoin: $isJoin", Toast.LENGTH_SHORT).show()
+//            DataManager.instance.doRoomInfo()
         }
+    }
 
-        //DataManager.instance.doRoomInfo()
+    override fun onResume() {
+        super.onResume()
+        DataManager.instance.addObserver(this)
+    }
+
+    override fun onStop() {
+        super.onStop()
+        DataManager.instance.deleteObserver(this)
     }
 
     private fun setRecyclerView() {
@@ -72,20 +83,33 @@ class ChatRoomListFragment: Fragment(), Observer {
 
         val list = arrayListOf("ChatRoom 1", "ChatRoom 2", "ChatRoom 3")
 
-        adapter = ListAdapter(list)
+        adapter = ListAdapter(mActivity, list, roomInfoList)
         adapter.setListener(object : ListAdapter.ClickListener {
             override fun onEnterChatRoom(item: String) {
-                val uuid = UUID.randomUUID().toString()
+                cancelTimer()
 
-//                roomInfoList.find { it.roomID == item }?.let {
-//                    Log.e("Test", "${it.roomUser.caller} - ${it.roomUser.callee}")
-//                }
-                val b = Bundle()
-                b.putString("RoomID", item)
-                b.putBoolean("IsJoin", true)
-                b.putString("Uuid", uuid)
-                b.putString("UserName", userName)
-                startActivity(Intent(mActivity, RTCActivity::class.java).putExtras(b))
+                if (roomInfoList.size == 0) {
+                    val uuid = UUID.randomUUID().toString()
+                    val b = Bundle()
+                    b.putString("RoomID", item)
+                    b.putBoolean("IsJoin", true)
+                    b.putString("Uuid", uuid)
+                    b.putString("UserName", userName)
+                    startActivity(Intent(mActivity, RTCActivity::class.java).putExtras(b))
+                } else {
+                    roomInfoList.find { it.roomID == item }?.let {
+                        if (it.roomUser.size < 2) {
+                            val uuid = UUID.randomUUID().toString()
+                            val b = Bundle()
+                            b.putString("RoomID", item)
+                            b.putBoolean("IsJoin", true)
+                            b.putString("Uuid", uuid)
+                            b.putString("UserName", userName)
+                            startActivity(Intent(mActivity, RTCActivity::class.java).putExtras(b))
+                        }
+                    }
+                }
+
 
                 /**
                 //if (!isJoin) {
@@ -128,19 +152,43 @@ class ChatRoomListFragment: Fragment(), Observer {
         binding?.rcList?.layoutManager = layoutManager
     }
 
-    private fun initSocket() {
-        SocketManager.instance.connectUrl("http://192.168.0.105:8500/")
+    fun setUpdateTimer() {
+        var count = 15
+        timer = Timer()
+        timer.schedule(object : TimerTask() {
+            override fun run() {
+                count --
+                mActivity.runOnUiThread {
+                    binding?.tvTimer?.text = "Next Update : ${count}s"
+                }
+                if (count == 0) {
+                    count = 15
+                    DataManager.instance.doRoomInfo()
+                }
+            }
+        }, 0, 1000)
+    }
+
+    fun cancelTimer() {
+        timer.cancel()
+        timer.purge()
     }
 
     override fun onDestroy() {
         super.onDestroy()
         binding = null
+        timer.cancel()
+        timer.purge()
     }
 
     override fun update(p0: Observable?, arg: Any?) {
         when (arg) {
             is RoomInfoRes -> {
-                roomInfoList.addAll(arg.result.roomInfoList)
+                mActivity.runOnUiThread {
+                    roomInfoList.clear()
+                    roomInfoList.addAll(arg.result.roomInfoList)
+                    adapter.notifyDataSetChanged()
+                }
             }
         }
     }
