@@ -6,12 +6,9 @@ import android.util.Log
 import android.view.View
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
-import androidx.core.view.isGone
 import androidx.lifecycle.ViewModelProvider
-import androidx.lifecycle.lifecycleScope
 import com.bumptech.glide.Glide
 import com.developerspace.webrtcsample.SignalingClient
-import com.developerspace.webrtcsample.SignalingClientListener
 import com.example.os_finalproject.Data.Controller
 import com.example.os_finalproject.Data.DataViewModel
 import com.example.os_finalproject.Data.URL
@@ -41,11 +38,13 @@ class RTCActivity : AppCompatActivity() {
 
     private var roomID : String = "test-call"
 
-    private var socketID: String = ""
+    private var socketID : String = ""
 
-    private var targetSocketID: String = ""
+    private var targetSocketID : String = ""
 
-    private var userName : String = "userA"
+    private var userName : String = ""
+
+    private var targetUserName : String = ""
 
     private var isCaller : Boolean = false
 
@@ -125,17 +124,20 @@ class RTCActivity : AppCompatActivity() {
 
             on("startCall") {
                 runOnUiThread {
-                    Toast.makeText(this@RTCActivity, "${isCaller}", Toast.LENGTH_SHORT).show()
                     isCaller = it.getBoolean("isCaller")
                     targetSocketID = it.getString("targetSocketID")
+                    targetUserName = it.getString("targetUserName")
+
                     binding.remoteView.visibility = View.VISIBLE
+
+                    Toast.makeText(this@RTCActivity, "$targetUserName join", Toast.LENGTH_LONG).show()
+
                     initRTCClient()
                 }
             }
 
             on("offer") {
                 runOnUiThread {
-                    Toast.makeText(this@RTCActivity, "[on] offer", Toast.LENGTH_SHORT).show()
                     val type = when (it.getInt("type")) {
                         0 -> SessionDescription.Type.OFFER
                         1 -> SessionDescription.Type.PRANSWER
@@ -151,7 +153,6 @@ class RTCActivity : AppCompatActivity() {
 
             on("answer") {
                 runOnUiThread {
-                    Toast.makeText(this@RTCActivity, "[on] answer", Toast.LENGTH_SHORT).show()
                     val type = when (it.getInt("type")) {
                         0 -> SessionDescription.Type.OFFER
                         1 -> SessionDescription.Type.PRANSWER
@@ -172,7 +173,7 @@ class RTCActivity : AppCompatActivity() {
 
             on("targetLeave") {
                 runOnUiThread {
-                    Toast.makeText(this@RTCActivity, "對方已離開", Toast.LENGTH_SHORT).show()
+                    Toast.makeText(this@RTCActivity, "$targetUserName has left", Toast.LENGTH_SHORT).show()
 
                     binding.remoteView.release()
                     binding.imgLoading.visibility = View.VISIBLE

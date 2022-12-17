@@ -1,6 +1,6 @@
 package com.example.os_finalproject.Data
 
-val URL = "http://192.168.0.102"
+val URL = "http://192.168.0.101"
 
 data class RoomInfoRes(val result: Result) {
     data class Result(val roomInfoList: ArrayList<RoomInfoList>)
