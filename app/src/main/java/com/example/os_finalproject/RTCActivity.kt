@@ -1,17 +1,25 @@
 package com.example.os_finalproject
 
+import android.app.PendingIntent
+import android.app.PictureInPictureParams
+import android.app.RemoteAction
 import android.content.Intent
+import android.content.res.Configuration
+import android.graphics.drawable.Icon
 import android.os.Bundle
 import android.util.Log
+import android.util.Rational
 import android.view.View
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
+import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.ViewModelProvider
 import com.bumptech.glide.Glide
 import com.developerspace.webrtcsample.SignalingClient
+import com.example.os_finalproject.Data.ACTION_END_CALL
 import com.example.os_finalproject.Data.Controller
 import com.example.os_finalproject.Data.DataViewModel
-import com.example.os_finalproject.Data.URL
+import com.example.os_finalproject.Data.ServerUrl
 import com.example.os_finalproject.databinding.ActivityRtcBinding
 import com.example.os_finalproject.signaling.Constants
 import com.example.os_finalproject.tool.SocketManager
@@ -21,7 +29,7 @@ import lab.italkutalk.tool.webRTC.RTCAudioManager
 import lab.italkutalk.tool.webRTC.RTCClient
 import org.json.JSONObject
 import org.webrtc.*
-import java.util.logging.SocketHandler
+import java.util.*
 
 class RTCActivity : AppCompatActivity() {
     private lateinit var binding: ActivityRtcBinding
@@ -64,6 +72,10 @@ class RTCActivity : AppCompatActivity() {
 
     private val sdpObserver = object : AppSdpObserver() {}
 
+    private lateinit var callTimer: Timer
+
+    private lateinit var callTimerTask: TimerTask
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         binding = ActivityRtcBinding.inflate(layoutInflater)
@@ -104,11 +116,20 @@ class RTCActivity : AppCompatActivity() {
         initSocket()
         initDisplay()
         setListener()
+
+        var count = 0
+        callTimer = Timer()
+        callTimerTask = object : TimerTask() {
+            override fun run() {
+                Log.e(Tag, "Timer: ${count ++}")
+            }
+        }
+        callTimer.schedule(callTimerTask, 0, 1000)
     }
 
     private fun initSocket() {
         SocketManager.instance.run {
-            connectUrl("${URL}:8500/")
+            connectUrl("${ServerUrl}:8500/")
 
             on("connected") {
                 runOnUiThread {
@@ -346,20 +367,51 @@ class RTCActivity : AppCompatActivity() {
             }
 
             imgEndCall.setOnClickListener {
-                val jsonObject = JSONObject().also {
-                    it.put("roomID", roomID)
-                    it.put("userName", userName)
-                    it.put("socketID", socketID)
-                }
-                SocketManager.instance.emit("endCall", jsonObject)
-
-                rtcClient?.endCall(roomID)
-                Constants.isCallEnded = true
-                finish()
+                //handleEndCall()
+                finishAndRemoveTask()
                 startActivity(Intent(this@RTCActivity, MainActivity::class.java))
             }
+
+            imgPIP.setOnClickListener { enterPipMode() }
         }
     }
+
+    private fun handleEndCall() {
+        val jsonObject = JSONObject().also {
+            it.put("roomID", roomID)
+            it.put("userName", userName)
+            it.put("socketID", socketID)
+
+            rtcClient?.endCall(roomID)
+
+            Constants.isCallEnded = true
+        }
+        SocketManager.instance.emit("endCall", jsonObject)
+    }
+
+    private fun getEndCallPendingIntent(): PendingIntent {
+        val intent = Intent(this, MainActivity::class.java)
+        return PendingIntent.getActivity(this, 102, intent, PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE)
+    }
+
+    private fun enterPipMode() {
+        val aspectRatio = Rational(9, 16)
+        val endCallPendingIntent = getEndCallPendingIntent()
+        val endCallAction = RemoteAction(
+            Icon.createWithResource(this, R.drawable.icon_endcall),
+            "End Call",
+            "End Call Button",
+            endCallPendingIntent
+        )
+        val params = PictureInPictureParams.Builder()
+            .setAspectRatio(aspectRatio)
+            //.setActions(listOf(endCallAction))
+            .setAspectRatio(Rational(9, 16))
+            .build()
+
+        this.enterPictureInPictureMode(params)
+    }
+
 
     override fun onDestroy() {
         super.onDestroy()
@@ -373,8 +425,33 @@ class RTCActivity : AppCompatActivity() {
 
         //signallingClient = null
 
-        rtcClient?.endCall(roomID)
+        handleEndCall()
 
         SocketManager.instance.disconnect()
+
+        callTimer.cancel()
+        callTimer.purge()
+        callTimerTask.cancel()
+
+        //startActivity(Intent(this@RTCActivity, MainActivity::class.java))
+    }
+
+    override fun onPictureInPictureModeChanged(isInPictureInPictureMode: Boolean, newConfig: Configuration) {
+        super.onPictureInPictureModeChanged(isInPictureInPictureMode, newConfig)
+
+        if (lifecycle.currentState == Lifecycle.State.CREATED)
+            finishAndRemoveTask()
+        else if (lifecycle.currentState == Lifecycle.State.STARTED)
+            setUiVisible(isInPictureInPictureMode)
+    }
+
+    private fun setUiVisible(isInPictureInPictureMode: Boolean) {
+        binding.run {
+            gpUI.visibility = if (isInPictureInPictureMode) View.GONE else View.VISIBLE
+        }
+    }
+
+    override fun onStop() {
+        super.onStop()
     }
 }

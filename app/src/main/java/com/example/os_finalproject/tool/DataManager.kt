@@ -2,7 +2,7 @@ package com.example.os_finalproject.tool
 
 import android.util.Log
 import com.example.os_finalproject.Data.RoomInfoRes
-import com.example.os_finalproject.Data.URL
+import com.example.os_finalproject.Data.ServerUrl
 import com.google.gson.Gson
 import okhttp3.*
 import okhttp3.ResponseBody.Companion.toResponseBody
@@ -72,5 +72,5 @@ class DataManager private constructor() : Observable(){
     /**
      * function
      */
-    fun doRoomInfo() = httpGet("${URL}:8000/api/roomInfo", RoomInfoRes::class.java)
+    fun doRoomInfo() = httpGet("${ServerUrl}:8000/api/roomInfo", RoomInfoRes::class.java)
 }

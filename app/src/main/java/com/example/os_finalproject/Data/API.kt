@@ -1,6 +1,8 @@
 package com.example.os_finalproject.Data
 
-val URL = "http://192.168.0.101"
+const val ServerUrl = "http://140.124.73.7"
+
+const val ACTION_END_CALL = 102
 
 data class RoomInfoRes(val result: Result) {
     data class Result(val roomInfoList: ArrayList<RoomInfoList>)

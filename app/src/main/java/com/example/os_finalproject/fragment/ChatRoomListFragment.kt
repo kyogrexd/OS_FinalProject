@@ -86,8 +86,6 @@ class ChatRoomListFragment: Fragment(), Observer {
         adapter = ListAdapter(mActivity, list, roomInfoList)
         adapter.setListener(object : ListAdapter.ClickListener {
             override fun onEnterChatRoom(item: String) {
-                cancelTimer()
-
                 if (roomInfoList.size == 0) {
                     val uuid = UUID.randomUUID().toString()
                     val b = Bundle()

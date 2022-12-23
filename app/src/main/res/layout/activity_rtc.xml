@@ -8,6 +8,13 @@
     android:background="#FFFFFF"
     android:keepScreenOn="true">
 
+    <androidx.constraintlayout.widget.Group
+        android:id="@+id/gpUI"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:visibility="visible"
+        app:constraint_referenced_ids="clLocalView, llControllerDown, llControllerRight" />
+
     <org.webrtc.SurfaceViewRenderer
         android:id="@+id/remoteView"
         android:layout_width="wrap_content"
@@ -77,11 +84,11 @@
             android:layout_height="wrap_content"
             app:srcCompat="@drawable/endcall" />
         <androidx.appcompat.widget.AppCompatImageView
-            android:id="@+id/imgShare"
+            android:id="@+id/imgPIP"
             android:layout_weight="1"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:visibility="gone"
+            android:visibility="visible"
             app:srcCompat="@drawable/share" />
     </LinearLayout>
 
@@ -106,6 +113,7 @@
         tools:visibility="invisible" />
 
     <LinearLayout
+        android:id="@+id/llControllerRight"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginTop="16dp"
