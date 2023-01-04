@@ -4,6 +4,7 @@
     <option name="filePathToZoomLevelMap">
       <map>
         <entry key="..\:/GitHub/WebRTC-App/app/src/main/res/drawable-hdpi/bg_white_blue_side.xml" value="0.3505" />
+        <entry key="..\:/GitHub/WebRTC-App/app/src/main/res/drawable-hdpi/btn_gray_light_50.xml" value="0.3505" />
         <entry key="..\:/GitHub/WebRTC-App/app/src/main/res/drawable-hdpi/rp_rectangle_blue2.xml" value="0.274" />
         <entry key="..\:/GitHub/WebRTC-App/app/src/main/res/drawable-hdpi/rp_rectangle_green.xml" value="0.3295" />
         <entry key="..\:/GitHub/WebRTC-App/app/src/main/res/drawable-hdpi/rp_rectangle_red.xml" value="0.3295" />
@@ -12,7 +13,7 @@
         <entry key="..\:/GitHub/WebRTC-App/app/src/main/res/layout/activity_rtc.xml" value="0.3536458333333333" />
         <entry key="..\:/GitHub/WebRTC-App/app/src/main/res/layout/fragment_chatroom_list.xml" value="0.3536458333333333" />
         <entry key="..\:/GitHub/WebRTC-App/app/src/main/res/layout/fragment_homepage.xml" value="0.26927083333333335" />
-        <entry key="..\:/GitHub/WebRTC-App/app/src/main/res/layout/item_chatroom_create.xml" value="0.25" />
+        <entry key="..\:/GitHub/WebRTC-App/app/src/main/res/layout/item_chatroom_create.xml" value="0.5" />
         <entry key="..\:/GitHub/WebRTC-App/app/src/main/res/layout/item_list.xml" value="0.26927083333333335" />
       </map>
     </option>

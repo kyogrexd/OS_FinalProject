@@ -1,6 +1,7 @@
 package com.example.os_finalproject
 
 import android.Manifest
+import android.app.Activity
 import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
@@ -8,12 +9,16 @@ import android.net.Uri
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.provider.Settings
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.inputmethod.InputMethodManager
 import android.widget.TextView
 import android.widget.Toast
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.fragment.app.Fragment
+import androidx.lifecycle.ViewModelProvider
 import androidx.viewpager2.widget.ViewPager2
+import com.example.os_finalproject.Data.DataViewModel
 import com.example.os_finalproject.Data.RoomInfoRes
 import com.example.os_finalproject.adapter.ViewPager2Adapter
 import com.example.os_finalproject.databinding.ActivityMainBinding
@@ -30,6 +35,19 @@ class MainActivity : AppCompatActivity(), Observer {
         HomePageFragment(),
         ChatRoomListFragment()
     )
+
+    val TAG = "MainActivity"
+
+    var resultLauncher = registerForActivityResult(ActivityResultContracts.StartActivityForResult()) {
+        if (it.resultCode == Activity.RESULT_OK) {
+            val data: Intent? = it.data
+            Log.e(TAG, "${data?.extras?.getString("UserName")}")
+
+            (adapter.fragments[1] as ChatRoomListFragment).startSocket()
+
+            DataManager.instance.addObserver(this)
+        }
+    }
 
     override fun onRequestPermissionsResult(requestCode: Int, permissions: Array<out String>, grantResults: IntArray) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults)
@@ -75,6 +93,7 @@ class MainActivity : AppCompatActivity(), Observer {
                 when (position) {
                     0 -> {
                         binding.viewPager2.isUserInputEnabled = false
+                        SocketManager.instance.disconnect()
                         (fragments[1] as ChatRoomListFragment).cancelTimer()
                     }
                     1 -> {

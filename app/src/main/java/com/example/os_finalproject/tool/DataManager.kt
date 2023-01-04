@@ -2,13 +2,14 @@ package com.example.os_finalproject.tool
 
 import android.util.Log
 import com.example.os_finalproject.Data.RoomInfoRes
-import com.example.os_finalproject.Data.ServerUrl
 import com.google.gson.Gson
 import okhttp3.*
 import okhttp3.ResponseBody.Companion.toResponseBody
 import java.io.IOException
 import java.util.*
 import java.util.concurrent.TimeUnit
+
+const val ServerUrl = "http://140.124.73.7"
 
 class DataManager private constructor() : Observable(){
 

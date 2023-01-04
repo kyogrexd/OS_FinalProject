@@ -260,33 +260,7 @@ class RTCClient(context: Application, observer: PeerConnection.Observer) {
         peerConnection?.addIceCandidate(iceCandidate)
     }
 
-    fun endCall(roomID: String) {
-//        db.collection("calls").document(roomID).collection("candidates")
-//            .get().addOnSuccessListener {
-//                val iceCandidateArray: MutableList<IceCandidate> = mutableListOf()
-//                for ( dataSnapshot in it) {
-//                    if (dataSnapshot.contains("type") && dataSnapshot["type"]=="offerCandidate") {
-//                        val offerCandidate = dataSnapshot
-//                        iceCandidateArray.add(IceCandidate(offerCandidate["sdpMid"].toString(), Math.toIntExact(offerCandidate["sdpMLineIndex"] as Long), offerCandidate["sdp"].toString()))
-//                    } else if (dataSnapshot.contains("type") && dataSnapshot["type"]=="answerCandidate") {
-//                        val answerCandidate = dataSnapshot
-//                        iceCandidateArray.add(IceCandidate(answerCandidate["sdpMid"].toString(), Math.toIntExact(answerCandidate["sdpMLineIndex"] as Long), answerCandidate["sdp"].toString()))
-//                    }
-//                }
-//                peerConnection?.removeIceCandidates(iceCandidateArray.toTypedArray())
-//            }
-//        val endCall = hashMapOf(
-//            "state" to "END_CALL"
-//        )
-//        db.collection("calls").document(roomID)
-//            .set(endCall)
-//            .addOnSuccessListener {
-//                Log.e(Tag, "[endCall] DocumentSnapshot added")
-//            }
-//            .addOnFailureListener { e ->
-//                Log.e(Tag, "[endCall] Error adding document", e)
-//            }
-
+    fun endCall() {
         Constants.isIntiatedNow = true
         peerConnection?.close()
         //closedAudio()
