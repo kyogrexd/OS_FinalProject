@@ -1,11 +1,8 @@
 package com.example.os_finalproject.adapter
 
-import android.annotation.SuppressLint
 import android.content.Context
 import android.view.LayoutInflater
-import android.view.View
 import android.view.ViewGroup
-import android.widget.TextView
 import androidx.recyclerview.widget.RecyclerView
 import com.example.os_finalproject.Data.RoomInfoRes
 import com.example.os_finalproject.R
@@ -33,7 +30,7 @@ class ListAdapter(val context: Context, private val roomInfoList: ArrayList<Room
     override fun onBindViewHolder(holder: ViewHolder, position: Int) {
         val item = roomInfoList[position]
 
-        holder.binding.tvContent.text = item.roomID
+        holder.binding.tvContent.text = "ChatRoom ${position + 1}"
         holder.binding.clItem.setOnClickListener { listener.onEnterChatRoom(item) }
 
         holder.binding.tvCount.text = "Number: 0"

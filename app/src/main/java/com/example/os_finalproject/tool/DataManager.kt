@@ -74,4 +74,6 @@ class DataManager private constructor() : Observable(){
      * function
      */
     fun doRoomInfo() = httpGet("${ServerUrl}:8000/api/roomInfo", RoomInfoRes::class.java)
+
+    //fun doRoomInfo() = httpGet("https://api.haowei.space/api/roomInfo", RoomInfoRes::class.java)
 }

@@ -74,6 +74,7 @@ class ChatRoomListFragment: Fragment(), Observer {
 
     fun startSocket() {
         SocketManager.instance.run {
+//            connectUrl(""https://webrtc.haowei.space"")
             connectUrl("$ServerUrl:8500/")
 
             on("connected") {

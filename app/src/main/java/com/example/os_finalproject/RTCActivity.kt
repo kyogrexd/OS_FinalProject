@@ -111,15 +111,6 @@ class RTCActivity : AppCompatActivity() {
         initSocket()
         initDisplay()
         setListener()
-
-        var count = 0
-        callTimer = Timer()
-        callTimerTask = object : TimerTask() {
-            override fun run() {
-                Log.e(Tag, "Timer: ${count ++}")
-            }
-        }
-        callTimer.schedule(callTimerTask, 0, 1000)
     }
 
     private fun initSocket() {
@@ -149,6 +140,13 @@ class RTCActivity : AppCompatActivity() {
                 runOnUiThread {
                     roomID = it.getString("roomID")
                 }
+
+                val jsonObject2 = JSONObject().also { json ->
+                    json.put("roomID", roomID)
+                    json.put("socketID", socketID)
+                }
+                SocketManager.instance.emit("schedule_pairing_check", jsonObject2)
+                startTimer()
             }
 
             on("startCall") {
@@ -381,6 +379,29 @@ class RTCActivity : AppCompatActivity() {
             .build()
 
         this.enterPictureInPictureMode(params)
+    }
+
+    private fun startTimer() {
+        var count = 5
+        callTimer = Timer()
+        callTimerTask = object : TimerTask() {
+            override fun run() {
+                count --
+
+                Log.e(Tag, "Timer: $count")
+
+                if (count == 0) {
+                    count = 5
+
+                    val jsonObject = JSONObject().also { json ->
+                        json.put("roomID", roomID)
+                        json.put("socketID", socketID)
+                    }
+                    SocketManager.instance.emit("schedule_pairing_check", jsonObject)
+                }
+            }
+        }
+        callTimer.schedule(callTimerTask, 0, 1000)
     }
 
 
