@@ -21,10 +21,7 @@ import com.example.os_finalproject.Data.DataViewModel
 import com.example.os_finalproject.databinding.ActivityRtcBinding
 import com.example.os_finalproject.tool.ActivityController
 import com.example.os_finalproject.tool.SocketManager
-import lab.italkutalk.tool.webRTC.AppSdpObserver
-import lab.italkutalk.tool.webRTC.PeerConnectionObserver
-import lab.italkutalk.tool.webRTC.RTCAudioManager
-import lab.italkutalk.tool.webRTC.RTCClient
+import lab.italkutalk.tool.webRTC.*
 import org.json.JSONObject
 import org.webrtc.*
 import java.util.*
@@ -69,6 +66,12 @@ class RTCActivity : AppCompatActivity() {
     private lateinit var callTimer: Timer
 
     private lateinit var callTimerTask: TimerTask
+
+    //DataChannel 用到的字串
+    enum class DataString {
+        BackCamera,
+        FrontCamera
+    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -256,8 +259,37 @@ class RTCActivity : AppCompatActivity() {
                 Log.e(Tag, "onConnectionChange: $newState")
             }
 
-            override fun onDataChannel(p0: DataChannel?) {
-                Log.e(Tag, "onDataChannel: $p0")
+            override fun onDataChannel(dc: DataChannel?) {
+                Log.e(Tag, "onDataChannel: $dc")
+                dc?.registerObserver(object : DataChanelObserver() {
+                    override fun onMessage(buffer: DataChannel.Buffer?) {
+                        super.onMessage(buffer)
+
+                        val data = buffer?.data
+                        val bytes = data?.let { ByteArray(it.remaining()) }
+                        data?.get(bytes)
+                        val command = bytes?.let { String(it) }
+                        Log.e(Tag, "[DataChannel] onMessage: $command")
+
+                        try {
+                            runOnUiThread {
+                                command?.let {
+                                    when (it) {
+                                        DataString.FrontCamera.name -> binding.remoteView.setMirror(false)
+                                        DataString.BackCamera.name -> binding.remoteView.setMirror(true)
+                                    }
+                                }
+                            }
+                        } catch (e: Exception) {
+                            e.message?.let { Log.e(Tag, it) }
+                        }
+                    }
+
+                    override fun onStateChange() {
+                        super.onStateChange()
+                        Log.e(Tag, "[DataChannel] onStateChange: ${dc.state()}")
+                    }
+                })
             }
 
             override fun onStandardizedIceConnectionChange(newState: PeerConnection.IceConnectionState?) {
@@ -287,6 +319,9 @@ class RTCActivity : AppCompatActivity() {
                 Log.e(Tag, "onTrack: $transceiver" )
             }
         })
+
+        rtcClient?.setDataChanel()
+
         handleVideoAudioStream()
     }
 
@@ -338,6 +373,9 @@ class RTCActivity : AppCompatActivity() {
             }
 
             imgCamera.setOnClickListener {
+                isBackCamera = !isBackCamera
+
+                rtcClient?.sendData(if (isBackCamera) DataString.BackCamera.name else DataString.FrontCamera.name)
                 rtcClient?.switchCamera()
             }
 
