@@ -17,10 +17,7 @@ import com.example.os_finalproject.RTCActivity
 import com.example.os_finalproject.adapter.ListAdapter
 import com.example.os_finalproject.databinding.DialogRoomInfoBinding
 import com.example.os_finalproject.databinding.FragmentChatroomListBinding
-import com.example.os_finalproject.tool.DataManager
-import com.example.os_finalproject.tool.DialogManager
-import com.example.os_finalproject.tool.ServerUrl
-import com.example.os_finalproject.tool.SocketManager
+import com.example.os_finalproject.tool.*
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -107,11 +104,11 @@ class ChatRoomListFragment: Fragment(), Observer {
         val layoutManager = LinearLayoutManager(mActivity)
         layoutManager.orientation = LinearLayoutManager.VERTICAL
 
-        val list = arrayListOf("ChatRoom 1", "ChatRoom 2", "ChatRoom 3")
-
         adapter = ListAdapter(mActivity, roomInfoList)
         adapter.setListener(object : ListAdapter.ClickListener {
             override fun onEnterChatRoom(item: RoomInfoRes.RoomInfoList) {
+                if (ActivityController.checkOnActivityIsExist(RTCActivity::class.java.name)) return
+
                 val uuid = UUID.randomUUID().toString()
                 val b = Bundle()
                 b.putString("RoomID", item.roomID)

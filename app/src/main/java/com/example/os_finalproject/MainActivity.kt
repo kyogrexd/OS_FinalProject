@@ -73,6 +73,7 @@ class MainActivity : AppCompatActivity(), Observer {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         DataManager.instance.addObserver(this)
+        ActivityController.addActivity(this)
 
         binding = ActivityMainBinding.inflate(LayoutInflater.from(this))
         setContentView(binding.root)
@@ -144,5 +145,10 @@ class MainActivity : AppCompatActivity(), Observer {
 
             }
         }
+    }
+
+    override fun onDestroy() {
+        super.onDestroy()
+        ActivityController.removeActivity(this)
     }
 }

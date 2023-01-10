@@ -19,6 +19,7 @@ import com.developerspace.webrtcsample.SignalingClient
 import com.example.os_finalproject.Data.Controller
 import com.example.os_finalproject.Data.DataViewModel
 import com.example.os_finalproject.databinding.ActivityRtcBinding
+import com.example.os_finalproject.tool.ActivityController
 import com.example.os_finalproject.tool.SocketManager
 import lab.italkutalk.tool.webRTC.AppSdpObserver
 import lab.italkutalk.tool.webRTC.PeerConnectionObserver
@@ -71,6 +72,9 @@ class RTCActivity : AppCompatActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+
+        ActivityController.addActivity(this)
+
         binding = ActivityRtcBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
@@ -407,6 +411,7 @@ class RTCActivity : AppCompatActivity() {
 
     override fun onDestroy() {
         super.onDestroy()
+        ActivityController.removeActivity(this)
 
         remoteVideoTrack?.removeSink(binding.remoteView)
 
