@@ -9,13 +9,16 @@ import java.io.IOException
 import java.util.*
 import java.util.concurrent.TimeUnit
 
-const val ServerUrl = "http://140.124.73.7"
 
 class DataManager private constructor() : Observable(){
 
     companion object {
         val instance : DataManager = DataManager()
     }
+
+    var ServerUrl = "http://140.124.73.7:8500/" //https://webrtc.haowei.space
+
+    var APIUrl = "http://140.124.73.7:8000/" //https://api.haowei.space/
 
     private var client = OkHttpClient.Builder().connectTimeout(10, TimeUnit.SECONDS)
         .writeTimeout(10, TimeUnit.SECONDS).readTimeout(10, TimeUnit.SECONDS)
@@ -73,7 +76,7 @@ class DataManager private constructor() : Observable(){
     /**
      * function
      */
-    fun doRoomInfo() = httpGet("${ServerUrl}:8000/api/roomInfo", RoomInfoRes::class.java)
+    fun doRoomInfo() = httpGet("${APIUrl}api/roomInfo", RoomInfoRes::class.java)
 
     //fun doRoomInfo() = httpGet("https://api.haowei.space/api/roomInfo", RoomInfoRes::class.java)
 }

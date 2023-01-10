@@ -74,8 +74,8 @@ class ChatRoomListFragment: Fragment(), Observer {
 
     fun startSocket() {
         SocketManager.instance.run {
-//            connectUrl(""https://webrtc.haowei.space"")
-            connectUrl("$ServerUrl:8500/")
+            //connectUrl("https://webrtc.haowei.space")
+            connectUrl("${DataManager.instance.ServerUrl}")
 
             on("connected") {
                 mActivity.runOnUiThread {
@@ -108,6 +108,7 @@ class ChatRoomListFragment: Fragment(), Observer {
         adapter.setListener(object : ListAdapter.ClickListener {
             override fun onEnterChatRoom(item: RoomInfoRes.RoomInfoList) {
                 if (ActivityController.checkOnActivityIsExist(RTCActivity::class.java.name)) return
+                if (item.roomUser.size > 1) return
 
                 val uuid = UUID.randomUUID().toString()
                 val b = Bundle()

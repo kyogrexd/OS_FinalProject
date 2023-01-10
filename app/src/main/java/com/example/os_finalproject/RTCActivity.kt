@@ -147,12 +147,6 @@ class RTCActivity : AppCompatActivity() {
                 runOnUiThread {
                     roomID = it.getString("roomID")
                 }
-
-                val jsonObject2 = JSONObject().also { json ->
-                    json.put("roomID", roomID)
-                    json.put("socketID", socketID)
-                }
-                SocketManager.instance.emit("schedule_pairing_check", jsonObject2)
                 startTimer()
             }
 
