@@ -5,20 +5,25 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.TextView
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.ViewModelProvider
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.example.os_finalproject.Data.DataViewModel
 import com.example.os_finalproject.Data.RoomInfoRes
 import com.example.os_finalproject.MainActivity
+import com.example.os_finalproject.R
 import com.example.os_finalproject.RTCActivity
 import com.example.os_finalproject.adapter.ListAdapter
+import com.example.os_finalproject.databinding.DialogRoomInfoBinding
 import com.example.os_finalproject.databinding.FragmentChatroomListBinding
 import com.example.os_finalproject.tool.DataManager
+import com.example.os_finalproject.tool.DialogManager
 import com.example.os_finalproject.tool.ServerUrl
 import com.example.os_finalproject.tool.SocketManager
-import com.google.firebase.firestore.ktx.firestore
-import com.google.firebase.ktx.Firebase
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
 import java.util.*
 import kotlin.collections.ArrayList
 
@@ -33,8 +38,6 @@ class ChatRoomListFragment: Fragment(), Observer {
     private var roomInfoList = ArrayList<RoomInfoRes.RoomInfoList>()
     private var timer = Timer()
     private val TAG = "ChatRoomListFragment"
-
-    val db = Firebase.firestore
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -118,6 +121,22 @@ class ChatRoomListFragment: Fragment(), Observer {
                 val intent = Intent(mActivity, RTCActivity::class.java).putExtras(b)
                 mActivity.resultLauncher.launch(intent)
             }
+
+            override fun onClickInfo(item: RoomInfoRes.RoomInfoList) {
+                DialogManager.instance.showCustom(mActivity, DialogRoomInfoBinding.inflate(LayoutInflater.from(mActivity)).root)?.let {
+                    val tvCount = it.findViewById<TextView>(R.id.tvCount)
+                    val tvUser1 = it.findViewById<TextView>(R.id.tvUser1)
+                    val tvUser2 = it.findViewById<TextView>(R.id.tvUser2)
+
+                    val userName1 = if (item.roomUser.size > 0) item.roomUser[0].userName else ""
+                    val userName2 = if (item.roomUser.size > 1) item.roomUser[1].userName else ""
+
+                    tvCount.text = "Number :  ${item.roomUser.size}"
+                    tvUser1.text = "Name : $userName1"
+                    tvUser2.visibility = if (item.roomUser.size > 1) View.VISIBLE else View.GONE
+                    tvUser2.text = "Name : $userName2"
+                }
+            }
         })
         binding?.rcList?.adapter = adapter
         binding?.rcList?.layoutManager = layoutManager
@@ -155,7 +174,7 @@ class ChatRoomListFragment: Fragment(), Observer {
     override fun update(p0: Observable?, arg: Any?) {
         when (arg) {
             is RoomInfoRes -> {
-                mActivity.runOnUiThread {
+                CoroutineScope(Dispatchers.Main).launch {
                     roomInfoList.clear()
                     roomInfoList.addAll(arg.result.roomInfoList)
                     adapter.notifyDataSetChanged()

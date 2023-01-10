@@ -417,9 +417,11 @@ class RTCActivity : AppCompatActivity() {
 
         //SocketManager.instance.disconnect()
 
-        callTimer.cancel()
-        callTimer.purge()
-        callTimerTask.cancel()
+        if (::callTimer.isInitialized && ::callTimerTask.isInitialized) {
+            callTimer.cancel()
+            callTimer.purge()
+            callTimerTask.cancel()
+        }
     }
 
     override fun onPictureInPictureModeChanged(isInPictureInPictureMode: Boolean, newConfig: Configuration) {

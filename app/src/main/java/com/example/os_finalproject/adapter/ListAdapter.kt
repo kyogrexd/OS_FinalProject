@@ -15,6 +15,8 @@ class ListAdapter(val context: Context, private val roomInfoList: ArrayList<Room
 
     interface ClickListener {
         fun onEnterChatRoom(item: RoomInfoRes.RoomInfoList)
+
+        fun onClickInfo(item: RoomInfoRes.RoomInfoList)
     }
 
     fun setListener(l: ClickListener) { listener = l }
@@ -34,6 +36,7 @@ class ListAdapter(val context: Context, private val roomInfoList: ArrayList<Room
         holder.binding.clItem.setOnClickListener { listener.onEnterChatRoom(item) }
 
         holder.binding.tvCount.text = "Number: 0"
+        holder.binding.tvCount.setOnClickListener { listener.onClickInfo(item) }
 
         holder.binding.tvCount.text =
             if (item.roomUser.size < 2) "Number: ${item.roomUser.size}"
